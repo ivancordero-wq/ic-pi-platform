@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+    @page { size: A4 landscape; margin: 1.5cm; }
+    body { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 9pt; color: #1a1a1a; }
+    .header { border-bottom: 2px solid #111827; padding-bottom: 10px; margin-bottom: 20px; }
+    .header h1 { font-size: 16pt; margin: 0; }
+    .header .meta { font-size: 9pt; color: #6b7280; }
+    .score-block { text-align: center; padding: 20px; background-color: #F9FAFB; border-radius: 8px; margin: 16px 0; }
+    .score-block .npi { font-size: 36pt; font-weight: bold; }
+    .score-block .target { font-size: 10pt; color: #6b7280; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 8.5pt; }
+    th { background-color: #f3f4f6; padding: 6px 8px; text-align: left; font-weight: 600; border-bottom: 2px solid #d1d5db; }
+    td { padding: 5px 8px; border-bottom: 1px solid #e5e7eb; }
+    .zone-red { color: #DC2626; font-weight: bold; }
+    .zone-yellow { color: #F59E0B; font-weight: bold; }
+    .zone-green { color: #10B981; font-weight: bold; }
+    .signals { margin: 16px 0; }
+    .signal-box { display: inline-block; width: 30%; padding: 12px; border-radius: 6px; text-align: center; margin-right: 2%; }
+    .signal-box.alpha { background-color: #FEF2F2; border: 1px solid #FECACA; }
+    .signal-box.theta { background-color: #FFFBEB; border: 1px solid #FDE68A; }
+    .signal-box.tau { background-color: #F0FDF4; border: 1px solid #BBF7D0; }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <h1>IC-pi Performance Dashboard</h1>
+    <p style="margin: 4px 0; color: #6b7280;">{{ client_name }} | {{ process_name }}</p>
+    <p class="meta">Measurement: {{ measurement_number }} | Date: {{ measurement_date }}</p>
+</div>
+
+<div class="score-block">
+    <div class="npi" style="color: {% if zone == 'RED' %}#DC2626{% elif zone == 'YELLOW' %}#F59E0B{% else %}#10B981{% endif %};">
+        {{ "%.1f"|format(npi_score * 100) }}%
+    </div>
+    <div class="target">NPI Score | Target: {{ "%.0f"|format(green_target * 100) }}%</div>
+    <div class="zone-{{ zone|lower }}" style="margin-top: 8px; font-size: 12pt;">ZONE: {{ zone }}</div>
+</div>
+
+<div class="signals">
+    <div class="signal-box alpha">
+        <strong>Kill Switch</strong><br>
+        {{ alpha_count }} active
+    </div>
+    <div class="signal-box theta">
+        <strong>Trip Wires</strong><br>
+        {{ theta_count }} flagged
+    </div>
+    <div class="signal-box tau">
+        <strong>Trust Gate</strong><br>
+        {{ "%.0f"|format(tau_value * 100) }}%
+    </div>
+</div>
+
+<h3>Parameter Status</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Parameter</th>
+            <th>Score</th>
+            <th>Status</th>
+            <th>Delta from Discovery</th>
+            <th>Delta from Previous</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for param in parameters %}
+        <tr>
+            <td>{{ param.name }}</td>
+            <td>{{ "%.0f"|format(param.score * 100) }}%</td>
+            <td>{% if param.is_active %}Active Program{% else %}Monitored{% endif %}</td>
+            <td>{% if param.delta_from_discovery is defined %}{{ "%+.0f"|format(param.delta_from_discovery * 100) }}%{% else %}-{% endif %}</td>
+            <td>{% if param.delta_from_previous is defined %}{{ "%+.0f"|format(param.delta_from_previous * 100) }}%{% else %}-{% endif %}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% if progression_table|length > 1 %}
+<h3>Progression History</h3>
+<table>
+    <thead><tr><th>Measurement</th><th>Date</th><th>NPI</th><th>Zone</th></tr></thead>
+    <tbody>
+        {% for entry in progression_table %}
+        <tr>
+            <td>{{ entry.label }}</td>
+            <td>{{ entry.date }}</td>
+            <td>{{ "%.1f"|format(entry.npi_score * 100) }}%</td>
+            <td class="zone-{{ entry.zone|lower }}">{{ entry.zone }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+
+</body>
+</html>
