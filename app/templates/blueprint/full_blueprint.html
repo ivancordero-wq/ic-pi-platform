@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+    @page { size: A4; margin: 2cm; }
+    body { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 10pt; line-height: 1.5; color: #1a1a1a; }
+    .cover { text-align: center; padding-top: 100px; page-break-after: always; }
+    .cover h1 { font-size: 26pt; color: #111827; margin-bottom: 10px; }
+    .cover .subtitle { font-size: 13pt; color: #6b7280; }
+    .cover .zone-badge { display: inline-block; padding: 14px 40px; border-radius: 8px; font-size: 16pt; font-weight: bold; color: white; background-color: {{ overall_zone_color }}; margin-top: 30px; }
+    h2 { color: #111827; border-bottom: 2px solid #e5e7eb; padding-bottom: 6px; margin-top: 28px; font-size: 13pt; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 9pt; }
+    th { background-color: #f3f4f6; padding: 8px 10px; text-align: left; font-weight: 600; border-bottom: 2px solid #d1d5db; }
+    td { padding: 6px 10px; border-bottom: 1px solid #e5e7eb; }
+    .zone-red { color: #DC2626; font-weight: bold; }
+    .zone-yellow { color: #F59E0B; font-weight: bold; }
+    .zone-green { color: #10B981; font-weight: bold; }
+    .callout { background-color: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 6px; padding: 12px 16px; margin: 12px 0; font-size: 9pt; }
+    .flag-critical { background-color: #FEF2F2; border-left: 4px solid #DC2626; padding: 10px 14px; margin: 6px 0; }
+    .flag-warning { background-color: #FFFBEB; border-left: 4px solid #F59E0B; padding: 10px 14px; margin: 6px 0; }
+    .prescription { background-color: #F0FDF4; border-left: 4px solid #10B981; padding: 10px 14px; margin: 6px 0; }
+    .prescription.critical { background-color: #FEF2F2; border-left-color: #DC2626; }
+    .prescription.preventive { background-color: #FFFBEB; border-left-color: #F59E0B; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+    <p style="font-size: 10pt; color: #6b7280; letter-spacing: 2px;">IC-pi PERFORMANCE INDEX</p>
+    <h1>Full Blueprint Report</h1>
+    <p class="subtitle">{{ client_name }}</p>
+    <p class="subtitle">{{ discovery_name }}</p>
+    <span class="zone-badge">{{ overall_zone }}</span>
+    <p style="margin-top: 40px; font-size: 9pt; color: #9ca3af;">Generated: {{ generated_at }} | 13-Section Technical Report</p>
+</div>
+
+<div class="section">
+    <h2>Section 1: Executive Summary</h2>
+    <p>This Discovery evaluated <strong>{{ process_count }}</strong> process(es) for <strong>{{ client_name }}</strong>.</p>
+    <p>Overall verdict: <span class="zone-{{ overall_zone|lower }}">{{ overall_zone }}</span></p>
+    <p>Trust Gate: {% if trust_gate_passed %}PASSED{% else %}NOT CONVERGED{% endif %}</p>
+</div>
+
+<div class="section">
+    <h2>Section 2: Methodology</h2>
+    <div class="callout">
+        <strong>Formula:</strong> NPI = Sum[W_i x Sum(w_ij x KPI_ij)]<br>
+        <strong>Mechanisms:</strong> Trust Gate (tau) | Kill Switch (alpha) | Trip Wire (theta) | Zone Classification<br>
+        <strong>Basis:</strong> Non-compensatory decision science, Delphi consensus, statistical convergence
+    </div>
+</div>
+
+{% for proc in processes %}
+<div class="section">
+    <h2>Section 3: Process Analysis: {{ proc.name }}</h2>
+    <table>
+        <thead><tr><th>Parameter</th><th>Weight</th><th>KPI Score</th><th>Contribution</th><th>Signals</th></tr></thead>
+        <tbody>
+            {% for param in proc.parameters %}
+            <tr>
+                <td>{{ param.name }}</td>
+                <td>{{ param.weight }}%</td>
+                <td>{{ param.kpi_score }}%</td>
+                <td>{{ param.contribution }}%</td>
+                <td>{% if param.kill_switch %}KILL{% endif %}{% if param.trip_wire %}TRIP{% endif %}{% if not param.kill_switch and not param.trip_wire %}ok{% endif %}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endfor %}
+
+<div class="section">
+    <h2>Section 4: Kill Switch Report</h2>
+    {% for proc in processes %}
+    {% for param in proc.parameters %}
+    {% if param.kill_switch %}
+    <div class="flag-critical">
+        <strong>{{ param.name }}</strong> ({{ proc.name }})<br>
+        Score: {{ param.kpi_score }}% | Status: Below survival threshold. Process forced to RED.
+    </div>
+    {% endif %}
+    {% endfor %}
+    {% endfor %}
+</div>
+
+<div class="section">
+    <h2>Section 5: Trip Wire Report</h2>
+    {% for proc in processes %}
+    {% for param in proc.parameters %}
+    {% if param.trip_wire %}
+    <div class="flag-warning">
+        <strong>{{ param.name }}</strong> ({{ proc.name }})<br>
+        Score: {{ param.kpi_score }}% | Status: In warning band. Approaching critical.
+    </div>
+    {% endif %}
+    {% endfor %}
+    {% endfor %}
+</div>
+
+{% for proc in processes %}
+<div class="section">
+    <h2>Section 6: Prescriptions: {{ proc.name }}</h2>
+    {% for rx in proc.prescriptions %}
+    <div class="prescription {% if 'CRITICAL' in rx %}critical{% elif 'PREVENTIVE' in rx %}preventive{% endif %}">
+        {{ rx }}
+    </div>
+    {% endfor %}
+</div>
+{% endfor %}
+
+<div class="section">
+    <h2>Section 7: Trust Gate Status</h2>
+    <table>
+        <thead><tr><th>Process</th><th>Converged</th><th>Rounds</th></tr></thead>
+        <tbody>
+            {% for proc in processes %}
+            <tr>
+                <td>{{ proc.name }}</td>
+                <td>{% if proc.tau_converged %}<span class="zone-green">YES</span>{% else %}<span class="zone-red">NO</span>{% endif %}</td>
+                <td>{{ proc.tau_rounds }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="section">
+    <h2>Sections 8-13</h2>
+    <p><em>SME Participation Matrix, Statistical Appendix, Data Requirements, and Engagement Roadmap available in full data export.</em></p>
+    <p>Recommended cadence: Quarterly measurement cycles.</p>
+</div>
+
+</body>
+</html>
