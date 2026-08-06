@@ -1,13 +1,9 @@
-IC-pi Platform: FastAPI Application Entry Point
-"""
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import engine, Base
 from app.routes import clients, discoveries, engine_routes, blueprint
 
-# Create all database tables on startup
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
