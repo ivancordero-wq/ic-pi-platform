@@ -1,6 +1,3 @@
-IC-pi Platform: Discovery, Process, Parameter, KPI, SME Routes
-"""
-
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -12,8 +9,6 @@ from app import models
 
 router = APIRouter()
 
-
-# ---- Schemas ----
 
 class DiscoveryCreate(BaseModel):
     client_id: UUID
@@ -74,8 +69,6 @@ class ScoreCreate(BaseModel):
     evidence_note: Optional[str] = None
 
 
-# ---- Discovery Routes ----
-
 @router.post("/")
 def create_discovery(data: DiscoveryCreate, db: Session = Depends(get_db)):
     discovery = models.Discovery(**data.model_dump())
@@ -100,8 +93,6 @@ def get_discovery(discovery_id: UUID, db: Session = Depends(get_db)):
     }
 
 
-# ---- Process Routes ----
-
 @router.post("/processes")
 def create_process(data: ProcessCreate, db: Session = Depends(get_db)):
     process = models.Process(**data.model_dump())
@@ -110,8 +101,6 @@ def create_process(data: ProcessCreate, db: Session = Depends(get_db)):
     db.refresh(process)
     return {"id": str(process.id), "name": process.name}
 
-
-# ---- Parameter Routes ----
 
 @router.post("/parameters")
 def create_parameter(data: ParameterCreate, db: Session = Depends(get_db)):
@@ -134,8 +123,6 @@ def create_parameters_batch(data: list[ParameterCreate], db: Session = Depends(g
     return created
 
 
-# ---- KPI Routes ----
-
 @router.post("/kpis")
 def create_kpi(data: KPICreate, db: Session = Depends(get_db)):
     kpi = models.KPI(**data.model_dump())
@@ -156,7 +143,6 @@ def create_kpis_batch(data: list[KPICreate], db: Session = Depends(get_db)):
     db.commit()
     return created
 
-# ---- SME Routes ----
 
 @router.post("/smes")
 def create_sme(data: SMECreate, db: Session = Depends(get_db)):
@@ -179,8 +165,6 @@ def create_smes_batch(data: list[SMECreate], db: Session = Depends(get_db)):
     return created
 
 
-# ---- Vote Routes ----
-
 @router.post("/votes")
 def submit_vote(data: VoteCreate, db: Session = Depends(get_db)):
     vote = models.SMEVote(**data.model_dump())
@@ -198,8 +182,6 @@ def submit_votes_batch(data: list[VoteCreate], db: Session = Depends(get_db)):
     db.commit()
     return {"submitted": len(data)}
 
-
-# ---- Weight Routes ----
 
 @router.post("/weights")
 def submit_weight(data: WeightCreate, db: Session = Depends(get_db)):
@@ -219,8 +201,6 @@ def submit_weights_batch(data: list[WeightCreate], db: Session = Depends(get_db)
     return {"submitted": len(data)}
 
 
-# ---- Score Routes ----
-
 @router.post("/scores")
 def submit_score(data: ScoreCreate, db: Session = Depends(get_db)):
     score = models.KPIScore(**data.model_dump())
@@ -229,7 +209,6 @@ def submit_score(data: ScoreCreate, db: Session = Depends(get_db)):
     db.refresh(score)
     return {"id": str(score.id), "submitted": True}
 
-
 @router.post("/scores/batch")
 def submit_scores_batch(data: list[ScoreCreate], db: Session = Depends(get_db)):
     for item in data:
@@ -237,3 +216,5 @@ def submit_scores_batch(data: list[ScoreCreate], db: Session = Depends(get_db)):
         db.add(score)
     db.commit()
     return {"submitted": len(data)}
+
+
