@@ -10,6 +10,8 @@
     .cover .subtitle { font-size: 13pt; color: #6b7280; }
     .cover .zone-badge { display: inline-block; padding: 14px 40px; border-radius: 8px; font-size: 16pt; font-weight: bold; color: white; background-color: {{ overall_zone_color }}; margin-top: 30px; }
     h2 { color: #111827; border-bottom: 2px solid #e5e7eb; padding-bottom: 6px; margin-top: 28px; font-size: 13pt; }
+    h3 { color: #374151; margin-top: 18px; font-size: 11pt; }
+    .section { page-break-inside: avoid; margin-bottom: 20px; }
     table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 9pt; }
     th { background-color: #f3f4f6; padding: 8px 10px; text-align: left; font-weight: 600; border-bottom: 2px solid #d1d5db; }
     td { padding: 6px 10px; border-bottom: 1px solid #e5e7eb; }
@@ -22,6 +24,7 @@
     .prescription { background-color: #F0FDF4; border-left: 4px solid #10B981; padding: 10px 14px; margin: 6px 0; }
     .prescription.critical { background-color: #FEF2F2; border-left-color: #DC2626; }
     .prescription.preventive { background-color: #FFFBEB; border-left-color: #F59E0B; }
+    .footer { text-align: center; font-size: 8pt; color: #9ca3af; margin-top: 40px; }
 </style>
 </head>
 <body>
@@ -33,6 +36,7 @@
     <p class="subtitle">{{ discovery_name }}</p>
     <span class="zone-badge">{{ overall_zone }}</span>
     <p style="margin-top: 40px; font-size: 9pt; color: #9ca3af;">Generated: {{ generated_at }} | 13-Section Technical Report</p>
+    <p style="font-size: 9pt; color: #9ca3af;">IC Commerce and Consulting | Pattison TX</p>
 </div>
 
 <div class="section">
@@ -40,24 +44,48 @@
     <p>This Discovery evaluated <strong>{{ process_count }}</strong> process(es) for <strong>{{ client_name }}</strong>.</p>
     <p>Overall verdict: <span class="zone-{{ overall_zone|lower }}">{{ overall_zone }}</span></p>
     <p>Trust Gate: {% if trust_gate_passed %}PASSED{% else %}NOT CONVERGED{% endif %}</p>
+    <p>Zone distribution: RED={{ zone_counts.RED }}, YELLOW={{ zone_counts.YELLOW }}, GREEN={{ zone_counts.GREEN }}</p>
 </div>
 
 <div class="section">
-    <h2>Section 2: Methodology</h2>
+    <h2>Section 2: Methodology Overview</h2>
     <div class="callout">
-        <strong>Formula:</strong> NPI = Sum[W_i x Sum(w_ij x KPI_ij)]<br>
+        <strong>IC-pi Formula:</strong> NPI = Sum[W_i x Sum(w_ij x KPI_ij)]<br>
         <strong>Mechanisms:</strong> Trust Gate (tau) | Kill Switch (alpha) | Trip Wire (theta) | Zone Classification<br>
         <strong>Basis:</strong> Non-compensatory decision science, Delphi consensus, statistical convergence
     </div>
 </div>
 
+<div class="section">
+    <h2>Section 3: Discovery Configuration</h2>
+    {% for proc in processes %}
+    <h3>{{ proc.name }}</h3>
+    <table>
+        <tr><th>NPI Score</th><td>{{ proc.npi_percent }}%</td></tr>
+        <tr><th>Zone</th><td class="zone-{{ proc.zone|lower }}">{{ proc.zone }}</td></tr>
+        <tr><th>Kill Switch</th><td>{% if proc.alpha_triggered %}ACTIVE{% else %}Clear{% endif %}</td></tr>
+        <tr><th>Trip Wires</th><td>{{ proc.trip_wire_count }} triggered</td></tr>
+        <tr><th>Trust Gate</th><td>{% if proc.tau_converged %}Converged (Round {{ proc.tau_rounds }}){% else %}Not converged{% endif %}</td></tr>
+    </table>
+    {% endfor %}
+</div>
+
+<div class="section">
+    <h2>Section 4: Trust Gate Results</h2>
+    {% for proc in processes %}
+    <p><strong>{{ proc.name }}:</strong> {% if proc.tau_converged %}Consensus reached in {{ proc.tau_rounds }} round(s).{% else %}Convergence not achieved.{% endif %}</p>
+    {% endfor %}
+</div>
+
 {% for proc in processes %}
 <div class="section">
-    <h2>Section 3: Process Analysis: {{ proc.name }}</h2>
+    <h2>Section 5: Process Analysis: {{ proc.name }}</h2>
     <table>
-        <thead><tr><th>Parameter</th><th>Weight</th><th>KPI Score</th><th>Contribution</th><th>Signals</th></tr></thead>
+        <thead>
+            <tr><th>Parameter</th><th>Weight</th><th>KPI Score</th><th>Contribution</th><th>Signals</th></tr>
+        </thead>
         <tbody>
-            {% for param in proc.parameters %}
+            {% for param in proc.parameters|sort(attribute='contribution', reverse=True) %}
             <tr>
                 <td>{{ param.name }}</td>
                 <td>{{ param.weight }}%</td>
@@ -72,13 +100,26 @@
 {% endfor %}
 
 <div class="section">
-    <h2>Section 4: Kill Switch Report</h2>
+    <h2>Section 6: Zone Map</h2>
+    <table>
+        <thead><tr><th>Zone</th><th>Processes</th></tr></thead>
+        <tbody>
+            <tr><td class="zone-red">RED</td><td>{% for p in processes %}{% if p.zone == 'RED' %}{{ p.name }}{% if not loop.last %}, {% endif %}{% endif %}{% endfor %}</td></tr>
+            <tr><td class="zone-yellow">YELLOW</td><td>{% for p in processes %}{% if p.zone == 'YELLOW' %}{{ p.name }}{% if not loop.last %}, {% endif %}{% endif %}{% endfor %}</td></tr>
+            <tr><td class="zone-green">GREEN</td><td>{% for p in processes %}{% if p.zone == 'GREEN' %}{{ p.name }}{% if not loop.last %}, {% endif %}{% endif %}{% endfor %}</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="section">
+    <h2>Section 7: Kill Switch (alpha) Report</h2>
     {% for proc in processes %}
     {% for param in proc.parameters %}
     {% if param.kill_switch %}
     <div class="flag-critical">
         <strong>{{ param.name }}</strong> ({{ proc.name }})<br>
-        Score: {{ param.kpi_score }}% | Status: Below survival threshold. Process forced to RED.
+        Score: {{ param.kpi_score }}% | Weight: {{ param.weight }}%<br>
+        Status: Below survival threshold. Process forced to RED.
     </div>
     {% endif %}
     {% endfor %}
@@ -86,13 +127,14 @@
 </div>
 
 <div class="section">
-    <h2>Section 5: Trip Wire Report</h2>
+    <h2>Section 8: Trip Wire (theta) Report</h2>
     {% for proc in processes %}
     {% for param in proc.parameters %}
     {% if param.trip_wire %}
     <div class="flag-warning">
         <strong>{{ param.name }}</strong> ({{ proc.name }})<br>
-        Score: {{ param.kpi_score }}% | Status: In warning band. Approaching critical.
+        Score: {{ param.kpi_score }}% | Weight: {{ param.weight }}%<br>
+        Status: In warning band. Approaching critical.
     </div>
     {% endif %}
     {% endfor %}
@@ -101,7 +143,7 @@
 
 {% for proc in processes %}
 <div class="section">
-    <h2>Section 6: Prescriptions: {{ proc.name }}</h2>
+    <h2>Section 9: Prescription Portfolio: {{ proc.name }}</h2>
     {% for rx in proc.prescriptions %}
     <div class="prescription {% if 'CRITICAL' in rx %}critical{% elif 'PREVENTIVE' in rx %}preventive{% endif %}">
         {{ rx }}
@@ -111,26 +153,29 @@
 {% endfor %}
 
 <div class="section">
-    <h2>Section 7: Trust Gate Status</h2>
-    <table>
-        <thead><tr><th>Process</th><th>Converged</th><th>Rounds</th></tr></thead>
-        <tbody>
-            {% for proc in processes %}
-            <tr>
-                <td>{{ proc.name }}</td>
-                <td>{% if proc.tau_converged %}<span class="zone-green">YES</span>{% else %}<span class="zone-red">NO</span>{% endif %}</td>
-                <td>{{ proc.tau_rounds }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <h2>Section 10: SME Participation Matrix</h2>
+    <p><em>Detailed SME voting patterns and convergence analysis available in full data export.</em></p>
 </div>
 
 <div class="section">
-    <h2>Sections 8-13</h2>
-    <p><em>SME Participation Matrix, Statistical Appendix, Data Requirements, and Engagement Roadmap available in full data export.</em></p>
-    <p>Recommended cadence: Quarterly measurement cycles.</p>
+    <h2>Section 11: Statistical Appendix</h2>
+    <p><em>Inter-rater agreement ratios, weight distributions, and sensitivity analysis available upon request.</em></p>
+</div>
+
+<div class="section">
+    <h2>Section 12: Data Requirements</h2>
+    <p><em>KPI measurement specifications and data collection protocols to be defined during Stewardship setup.</em></p>
+</div>
+
+<div class="section">
+    <h2>Section 13: Next Steps and Engagement Roadmap</h2>
+    <p>Recommended cadence: Quarterly measurement cycles. First re-measurement after prescribed Agile projects complete their first sprint.</p>
+</div>
+
+<div class="footer">
+    IC-pi Performance Index | Full Blueprint Report | Confidential | {{ generated_at }}
 </div>
 
 </body>
 </html>
+
