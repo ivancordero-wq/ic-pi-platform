@@ -1,9 +1,3 @@
-"""
-IC-pi Engine: Pipeline Orchestrator
-Single entry point: run_discovery_engine()
-Sequences: tau -> NPI -> alpha -> theta -> Zones -> Prescriptions
-"""
-
 from datetime import datetime
 
 from .schemas import ProcessInput, ProcessResult, EngineOutput, SMEVote
@@ -14,12 +8,7 @@ from .trip_wire import check_trip_wires
 from .zones import classify_zone
 
 
-def _generate_prescriptions(
-    process_name: str,
-    parameter_scores: list,
-    zone: str,
-    alpha_triggered: bool,
-) -> list[str]:
+def _generate_prescriptions(process_name, parameter_scores, zone, alpha_triggered):
     prescriptions = []
 
     kill_switched = [p for p in parameter_scores if p.kill_switch_active]
@@ -57,19 +46,19 @@ def _generate_prescriptions(
 
 
 def run_discovery_engine(
-    discovery_id: str,
-    client_name: str,
-    processes: list[ProcessInput],
-    votes_by_round: dict[str, list[list[SMEVote]]],
-    kpi_scores: dict[str, dict[str, float]],
-    zone_config: dict[str, dict],
-    critical_registry: dict[str, dict[str, bool]],
-    theta_config: dict[str, dict[str, dict]],
-    alpha_threshold: float = 0.3,
-    tau_threshold: float = 0.75,
-    max_rounds: int = 3,
-) -> EngineOutput:
-    results: list[ProcessResult] = []
+    discovery_id,
+    client_name,
+    processes,
+    votes_by_round,
+    kpi_scores,
+    zone_config,
+    critical_registry,
+    theta_config,
+    alpha_threshold=0.3,
+    tau_threshold=0.75,
+    max_rounds=3,
+):
+    results = []
 
     for process in processes:
         pid = process.process_id
@@ -144,7 +133,7 @@ def run_discovery_engine(
             prescriptions=prescriptions,
         ))
 
-zone_priority = {"RED": 0, "YELLOW": 1, "GREEN": 2}
+    zone_priority = {"RED": 0, "YELLOW": 1, "GREEN": 2}
     overall_zone = min(
         (r.zone for r in results),
         key=lambda z: zone_priority.get(z, 99),
