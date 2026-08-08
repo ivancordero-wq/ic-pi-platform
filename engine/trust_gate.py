@@ -1,6 +1,14 @@
 """
-IC-pi Engine: Trust Gate Module (tau)
-Determines whether SME consensus on parameter relevance has converged.
+IC-pi Engine: Relevance Gate Module (ρ — rho)
+==============================================
+
+Pre-filter: determines whether SMEs agree on WHICH parameters
+belong in the model, before any weighting math is applied.
+SMEs vote Yes/No/Unsure on each parameter. Iterative rounds
+until sufficient consensus or max rounds reached.
+
+Note: This is ρ (relevance), NOT θ (disagreement tolerance on weights).
+θ logic (σ² validation) is applied separately during the weighting phase.
 """
 
 from .schemas import SMEVote
