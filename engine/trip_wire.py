@@ -1,7 +1,11 @@
+
 """
-IC-pi Engine: Trip Wire Module (theta)
-Early warning system. Detects parameters APPROACHING danger
-even if the current score looks acceptable.
+IC-pi Engine: Trip Wire Module (τ — tau)
+==========================================
+
+Per-KPI critical floors. τ_ij is an array: one value per critical KPI.
+If KPI_ij < τ_ij → α fires → parameter collapses to RED.
+Defined by leadership (operational) or imposed by regulators (legal).
 """
 
 from .schemas import ParameterScore
