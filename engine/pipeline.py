@@ -2,7 +2,7 @@ from datetime import datetime
 
 from .schemas import ProcessInput, ProcessResult, EngineOutput, SMEVote
 from .npi import calculate_npi
-from .trust_gate import check_convergence
+from .rho_gate import check_convergence
 from .kill_switch import apply_alpha
 from .trip_wire import check_trip_wires
 from .zones import classify_zone
