@@ -43,7 +43,7 @@
     <h2>Section 1: Executive Summary</h2>
     <p>This Discovery evaluated <strong>{{ process_count }}</strong> process(es) for <strong>{{ client_name }}</strong>.</p>
     <p>Overall verdict: <span class="zone-{{ overall_zone|lower }}">{{ overall_zone }}</span></p>
-    <p>Trust Gate: {% if trust_gate_passed %}PASSED{% else %}NOT CONVERGED{% endif %}</p>
+    <p>Relevance Gate (ρ): {% if trust_gate_passed %}PASSED{% else %}NOT CONVERGED{% endif %}</p>
     <p>Zone distribution: RED={{ zone_counts.RED }}, YELLOW={{ zone_counts.YELLOW }}, GREEN={{ zone_counts.GREEN }}</p>
 </div>
 
@@ -71,7 +71,7 @@
 </div>
 
 <div class="section">
-    <h2>Section 4: Trust Gate Results</h2>
+    <h2>Section 4: Relevance Gate (ρ) Results</h2>
     {% for proc in processes %}
     <p><strong>{{ proc.name }}:</strong> {% if proc.tau_converged %}Consensus reached in {{ proc.tau_rounds }} round(s).{% else %}Convergence not achieved.{% endif %}</p>
     {% endfor %}
