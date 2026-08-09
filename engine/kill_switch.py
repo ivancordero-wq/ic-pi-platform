@@ -23,14 +23,34 @@ def identify_critical_parameters(
 def apply_alpha(
     parameter_scores: list[ParameterScore],
     critical_registry: dict[str, bool],
+    tau_floors: dict[str, float] | None = None,
     alpha_threshold: float = 0.3,
 ) -> tuple[bool, list[ParameterScore]]:
+    """
+    Apply kill switch (α) to critical parameters.
+
+    Args:
+        parameter_scores: scored parameters from NPI calculation
+        critical_registry: which parameters are critical (True/False)
+        tau_floors: per-parameter τ floors (if available). Keys = parameter_id, values = floor.
+        alpha_threshold: fallback threshold if no τ floor defined for a parameter (default 0.30)
+
+    Logic:
+        For each critical parameter, check if its KPI composite is below
+        its τ floor (or the default threshold). If yes → α fires.
+    """
     alpha_triggered = False
     updated_scores: list[ParameterScore] = []
 
     for param in parameter_scores:
         is_critical = critical_registry.get(param.parameter_id, False)
-        failed = is_critical and param.kpi_composite < alpha_threshold
+
+        # Use per-parameter τ floor if available, otherwise fallback
+        floor = alpha_threshold
+        if tau_floors and param.parameter_id in tau_floors:
+            floor = tau_floors[param.parameter_id]
+
+        failed = is_critical and param.kpi_composite < floor
 
         if failed:
             alpha_triggered = True
@@ -61,8 +81,8 @@ def get_kill_switch_summary(
         "critical_failures": triggered_params,
         "message": (
             f"KILL SWITCH ACTIVE: {len(triggered_params)} critical parameter(s) "
-            f"below threshold. Process forced to RED zone."
+            f"below τ floor. Process forced to RED zone."
             if alpha_triggered
-            else "All critical parameters above threshold. No override."
+            else "All critical parameters above τ floors. No override."
         ),
     }
