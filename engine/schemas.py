@@ -57,6 +57,13 @@ class ZoneConfig(BaseModel):
     green_target: float = Field(ge=0.0, le=1.0)
     red_floor: float = Field(ge=0.0, le=1.0)
 
+class TauConfig(BaseModel):
+    """τ_ij: Trip Wire floor for a critical KPI."""
+    kpi_id: str
+    parameter_id: str
+    tau_floor: float = Field(ge=0.0, le=1.0)
+    source: str = "leadership"  # "leadership", "regulatory", "contractual"
+
 
 # ---- INTERNAL SCHEMAS (between engine modules) ----
 
@@ -70,7 +77,8 @@ class ParameterScore(BaseModel):
     kill_switch_active: bool = False
 
 
-class TrustGateResult(BaseModel):
+class RelevanceGateResult(BaseModel):
+    """ρ (rho): Result of SME relevance voting pre-filter."""
     converged: bool
     rounds_used: int
     validated_params: list[str]
