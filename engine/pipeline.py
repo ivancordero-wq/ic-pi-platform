@@ -148,6 +148,6 @@ def run_discovery_engine(
         process_count=len(results),
         processes=results,
         overall_zone=overall_zone,
-        trust_gate_passed=overall_tau,
+        rho_gate_passed=overall_tau,
         timestamp=datetime.utcnow().isoformat(),
     )
