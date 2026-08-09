@@ -99,10 +99,10 @@ def run_discovery_engine(
             alpha_threshold=alpha_threshold,
         )
 
-        process_theta = theta_config.get(pid, {})
+        process_tau = theta_config.get(pid, {})
         flagged_ids, parameter_scores = check_trip_wires(
             parameter_scores=parameter_scores,
-            theta_config=process_theta,
+            tau_config=process_tau,
         )
 
         process_zone_config = zone_config.get(pid, {"green_target": 0.8, "red_floor": 0.4})
