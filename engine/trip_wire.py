@@ -10,36 +10,36 @@ Defined by leadership (operational) or imposed by regulators (legal).
 
 from .schemas import ParameterScore
 
-
-def calculate_theta_band(
+def calculate_tau_band(
     red_floor: float,
     green_target: float,
     band_width: float = 0.20,
 ) -> float:
     gap = green_target - red_floor
-    theta = red_floor + (gap * band_width)
-    return round(theta, 4)
+    tau = red_floor + (gap * band_width)
+    return round(tau, 4)
+
 
 
 def check_trip_wires(
     parameter_scores: list[ParameterScore],
-    theta_config: dict[str, dict],
+    tau_config: dict[str, dict],
 ) -> tuple[list[str], list[ParameterScore]]:
     flagged_ids: list[str] = []
     updated_scores: list[ParameterScore] = []
 
     for param in parameter_scores:
-        config = theta_config.get(param.parameter_id)
+        config = tau_config.get(param.parameter_id)
         tripped = False
 
         if config:
-            theta = calculate_theta_band(
+            tau = calculate_tau_band(
                 red_floor=config["red_floor"],
                 green_target=config["green_target"],
                 band_width=config.get("band_width", 0.20),
             )
 
-            if config["red_floor"] < param.kpi_composite <= theta:
+            if config["red_floor"] < param.kpi_composite <= tau:
                 tripped = True
                 flagged_ids.append(param.parameter_id)
 
@@ -53,13 +53,13 @@ def check_trip_wires(
 def get_trip_wire_summary(
     flagged_ids: list[str],
     parameter_scores: list[ParameterScore],
-    theta_config: dict[str, dict],
+    tau_config: dict[str, dict],
 ) -> dict:
     flagged_details = []
     for param in parameter_scores:
         if param.trip_wire_flag:
-            config = theta_config.get(param.parameter_id, {})
-            theta = calculate_theta_band(
+            config = tau_config.get(param.parameter_id, {})
+            tau = calculate_tau_band(
                 config.get("red_floor", 0),
                 config.get("green_target", 1),
                 config.get("band_width", 0.20),
@@ -68,7 +68,7 @@ def get_trip_wire_summary(
                 "parameter_id": param.parameter_id,
                 "parameter_name": param.parameter_name,
                 "current_score": param.kpi_composite,
-                "theta_threshold": theta,
+                "tau_threshold": tau,
                 "proximity_to_red": round(param.kpi_composite - config.get("red_floor", 0), 4),
             })
 
