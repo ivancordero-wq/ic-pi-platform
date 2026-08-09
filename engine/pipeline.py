@@ -67,7 +67,7 @@ def run_discovery_engine(
         tau_converged, tau_rounds, validated_params, contested = check_convergence(
             votes_by_round=process_votes,
             parameter_ids=process.parameters,
-            tau_threshold=tau_threshold,
+            rho_threshold=tau_threshold,
             max_rounds=max_rounds,
         )
 
