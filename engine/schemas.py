@@ -49,6 +49,7 @@ class ProcessInput(BaseModel):
     process_id: str
     process_name: str
     parameters: list[str]
+    parameter_names: dict[str, str] = {}  # {param_id: human_name}
     critical_parameters: list[str] = []
     sme_votes: list[SMEVote] = []
     kpi_weights: list[KPIWeight] = []
