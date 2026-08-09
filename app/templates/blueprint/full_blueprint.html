@@ -51,7 +51,7 @@
     <h2>Section 2: Methodology Overview</h2>
     <div class="callout">
         <strong>IC-pi Formula:</strong> NPI = Sum[W_i x Sum(w_ij x KPI_ij)]<br>
-        <strong>Mechanisms:</strong> Trust Gate (tau) | Kill Switch (alpha) | Trip Wire (theta) | Zone Classification<br>
+        <strong>Mechanisms:</strong> Relevance Gate (ρ) | Disagreement Tolerance (θ) | Trip Wire (τ) | Kill Switch (α) | Zone Classification<br>
         <strong>Basis:</strong> Non-compensatory decision science, Delphi consensus, statistical convergence
     </div>
 </div>
@@ -127,7 +127,7 @@
 </div>
 
 <div class="section">
-    <h2>Section 8: Trip Wire (theta) Report</h2>
+    <h2>Section 8: Trip Wire (τ) Report</h2>
     {% for proc in processes %}
     {% for param in proc.parameters %}
     {% if param.trip_wire %}
