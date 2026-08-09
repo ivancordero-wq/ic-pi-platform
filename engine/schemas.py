@@ -13,6 +13,9 @@ class Zone(str, Enum):
     YELLOW = "YELLOW"
     GREEN = "GREEN"
 
+    def __str__(self):
+        return self.value
+
 
 class Relevance(str, Enum):
     YES = "YES"
