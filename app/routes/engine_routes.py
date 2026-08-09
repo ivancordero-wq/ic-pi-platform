@@ -132,7 +132,7 @@ def run_engine(discovery_id: UUID, measurement_label: str = "discovery", db: Ses
         discovery_id=discovery_id,
         measurement_label=measurement_label,
         overall_zone=result.overall_zone,
-        trust_gate_passed=result.trust_gate_passed,
+        trust_gate_passed=result.rho_gate_passed,
         result_json=result.model_dump_json(),
     )
     db.add(engine_result)
