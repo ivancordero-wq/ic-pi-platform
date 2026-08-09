@@ -128,14 +128,25 @@ def run_engine(discovery_id: UUID, measurement_label: str = "discovery", db: Ses
         theta_config=theta_config,
     )
 
-    engine_result = models.EngineResult(
-        discovery_id=discovery_id,
-        measurement_label=measurement_label,
-        overall_zone=result.overall_zone,
-        trust_gate_passed=result.rho_gate_passed,
-        result_json=result.model_dump_json(),
-    )
-    db.add(engine_result)
+    existing_result = db.query(models.EngineResult).filter(
+        models.EngineResult.discovery_id == discovery_id,
+        models.EngineResult.measurement_label == measurement_label,
+    ).first()
+
+    if existing_result:
+        existing_result.overall_zone = result.overall_zone
+        existing_result.trust_gate_passed = result.rho_gate_passed
+        existing_result.result_json = result.model_dump_json()
+        existing_result.generated_at = datetime.utcnow()
+    else:
+        engine_result = models.EngineResult(
+            discovery_id=discovery_id,
+            measurement_label=measurement_label,
+            overall_zone=result.overall_zone,
+            trust_gate_passed=result.rho_gate_passed,
+            result_json=result.model_dump_json(),
+        )
+        db.add(engine_result)
     db.commit()
 
     discovery.status = "completed"
