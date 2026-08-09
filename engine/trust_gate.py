@@ -74,19 +74,19 @@ def check_convergence(
 
     return False, rounds_used, validated, contested
 
-
 def get_convergence_summary(
     converged: bool, rounds_used: int, validated: list[str], contested: list[str]
 ) -> dict:
     return {
-        "trust_gate_passed": converged,
+        "rho_gate_passed": converged,
         "rounds_conducted": rounds_used,
         "parameters_validated": len(validated),
         "parameters_contested": len(contested),
         "contested_list": contested,
         "recommendation": (
-            "Consensus reached. Proceed to scoring."
+            "Relevance consensus reached. Proceed to weighting."
             if converged
-            else "Convergence not achieved. Facilitator review required."
+            else "Relevance consensus not achieved. Facilitator review required."
         ),
     }
+
