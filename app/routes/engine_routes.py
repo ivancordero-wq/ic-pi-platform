@@ -156,7 +156,7 @@ def run_engine(discovery_id: UUID, measurement_label: str = "discovery", db: Ses
     return {
         "discovery_id": str(discovery_id),
         "overall_zone": result.overall_zone,
-        "trust_gate_passed": result.trust_gate_passed,
+        "trust_gate_passed": result.rho_gate_passed,
         "processes": [
             {
                 "name": p.process_name,
