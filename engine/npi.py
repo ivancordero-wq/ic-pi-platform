@@ -70,7 +70,7 @@ def calculate_npi(
         parameter_scores.append(
             ParameterScore(
                 parameter_id=param_id,
-                parameter_name=param_id,
+                parameter_name=process.parameter_names.get(param_id, param_id),
                 W_i=round(W_i, 4),
                 kpi_composite=round(kpi_composite, 4),
                 contribution=round(contribution, 4),
