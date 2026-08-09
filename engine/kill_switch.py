@@ -1,7 +1,13 @@
 """
-IC-pi Engine: Kill Switch Module (alpha)
-Non-compensatory logic. Prevents catastrophic failures from being
-averaged away by strong performance elsewhere.
+IC-pi Engine: Kill Switch Module (α — alpha)
+=============================================
+
+Non-compensatory logic. If a critical KPI breaches its τ_ij floor,
+α_i drops to 0 → entire parent parameter collapses to RED.
+No amount of good performance elsewhere can compensate.
+
+Trigger: KPI_ij < τ_ij → α_i = 0 → Parameter_i forced RED.
+τ floors are defined by leadership (operational) or regulators (legal).
 """
 
 from .schemas import ParameterScore
