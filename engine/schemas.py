@@ -106,5 +106,5 @@ class EngineOutput(BaseModel):
     process_count: int = 0
     processes: list[ProcessResult]
     overall_zone: Zone
-    trust_gate_passed: bool
+    rho_gate_passed: bool
     timestamp: str = ""
