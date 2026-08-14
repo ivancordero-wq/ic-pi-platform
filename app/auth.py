@@ -1,4 +1,4 @@
-IC-pi Platform: Authentication Utilities
+IC-π™ Platform: Authentication Utilities
 =========================================
 Handles JWT token creation/validation and password hashing.
 
