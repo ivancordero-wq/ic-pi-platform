@@ -32,7 +32,7 @@ Base.metadata.create_all(bind=engine)
 # Application Instance
 # ---------------------------------------------------------------------------
 app = FastAPI(
-    title="IC-π™ Platform",
+    title="IC-pi Platform",
     description="IC Performance Index: Discovery Engine & Blueprint Generator",
     version="2.0.0",
 )
