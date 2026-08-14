@@ -1,0 +1,118 @@
+<!--
+  IC-π™ Platform: Base Template
+  ================================
+  Shared layout for all platform pages.
+  
+  Design language:
+  - Dark navy (#0f172a) canvas
+  - Zone-color ambient glows (green top-right, red bottom-left)
+  - Tailwind CSS via CDN (will switch to local build for production)
+  - HTMX for interactive behavior without full page reloads
+  - Inter font for clean, professional typography
+  
+  Usage: {% extends "base.html" %} then fill blocks: title, content
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}IC-π™ Platform{% endblock %}</title>
+    
+    <!-- Tailwind CSS (CDN for dev; replace with compiled for prod) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        navy: {
+                            900: '#0f172a',
+                            800: '#1e293b',
+                            700: '#334155',
+                        },
+                        zone: {
+                            red: '#ef4444',
+                            yellow: '#eab308',
+                            green: '#22c55e',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Inter Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- HTMX (lightweight interactivity) -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    
+    <!-- Shared Styles -->
+    <style>
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: #0f172a;
+            min-height: 100vh;
+        }
+        
+        /* Zone ambient glows (subtle background effect) */
+        .zone-glow {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.15;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .zone-glow-green {
+            top: -10%;
+            right: -5%;
+            width: 400px;
+            height: 400px;
+            background: #22c55e;
+        }
+        .zone-glow-red {
+            bottom: -10%;
+            left: -5%;
+            width: 350px;
+            height: 350px;
+            background: #ef4444;
+        }
+        
+        /* Zone signature dots */
+        .zone-dots {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        .zone-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        .zone-dot-red { background-color: #ef4444; }
+        .zone-dot-yellow { background-color: #eab308; }
+        .zone-dot-green { background-color: #22c55e; }
+    </style>
+    
+    {% block head %}{% endblock %}
+</head>
+<body class="bg-navy-900 text-white antialiased">
+    <!-- Zone ambient glows -->
+    <div class="zone-glow zone-glow-green"></div>
+    <div class="zone-glow zone-glow-red"></div>
+    
+    <!-- Page content -->
+    <main class="relative z-10 min-h-screen">
+        {% block content %}{% endblock %}
+    </main>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>
