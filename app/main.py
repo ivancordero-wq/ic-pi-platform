@@ -1,5 +1,5 @@
 """
-IC-π™ Platform: FastAPI Application Entry Point
+IC-pi Platform: FastAPI Application Entry Point
 ================================================
 Mounts all routers, serves static files and templates.
 
