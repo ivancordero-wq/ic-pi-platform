@@ -1,5 +1,5 @@
 """
-IC-π™ Platform: Authentication Routes
+IC-pi Platform: Authentication Routes
 ======================================
 Handles:
 1. POST /auth/login       → Email + password login (Consultants, Admins, Leadership)
