@@ -1,0 +1,281 @@
+<!--
+  IC-π™ Platform: Screen 1 - Login / Auth
+  ==========================================
+  Design Spec Reference: doc-page-25 (approved Aug 8, 2026)
+  
+  Two-tab interface:
+  1. "Sign In"    - Email + password (Consultants, Admins, Leadership)
+  2. "SME Access" - Magic-link token paste (fallback for SMEs)
+  
+  Design:
+  - Dark navy canvas with zone-color ambient glows
+  - Logo on white rounded rectangle
+  - Tagline: "Performance by proof. Projects by precision."
+  - Green CTA button (GREEN zone = target)
+  - Three zone dots (R/Y/G) as product signature
+  
+  Behavior:
+  - On success: JWT set as cookie, redirect to role-appropriate dashboard
+  - On error: inline error message, no page reload (HTMX)
+-->
+{% extends "base.html" %}
+
+{% block title %}Sign In | IC-π™{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-center min-h-screen px-4">
+    <div class="w-full max-w-md">
+        
+        <!-- Logo -->
+        <div class="flex justify-center mb-8">
+            <div class="bg-white rounded-2xl p-4 shadow-lg">
+                <img src="/static/logo-icpi.png" alt="IC-π™" class="h-12 w-auto">
+            </div>
+        </div>
+        
+        <!-- Tagline -->
+        <p class="text-center text-slate-400 text-sm mb-8 tracking-wide">
+            Performance by proof. Projects by precision.
+        </p>
+        
+        <!-- Card -->
+        <div class="bg-navy-800 rounded-2xl border border-slate-700/50 shadow-xl p-8">
+            
+            <!-- Tab Navigation -->
+            <div class="flex mb-6 border-b border-slate-700">
+                <button 
+                    id="tab-signin" 
+                    onclick="switchTab('signin')" 
+                    class="tab-btn flex-1 pb-3 text-sm font-medium text-zone-green border-b-2 border-zone-green">
+                    Sign In
+                </button>
+                <button 
+                    id="tab-sme" 
+                    onclick="switchTab('sme')" 
+                    class="tab-btn flex-1 pb-3 text-sm font-medium text-slate-400 border-b-2 border-transparent hover:text-slate-200">
+                    SME Access
+                </button>
+            </div>
+            
+            <!-- Error Message (hidden by default) -->
+            <div id="error-msg" class="hidden mb-4 p-3 bg-red-900/30 border border-red-700/50 rounded-lg text-red-300 text-sm">
+                <span id="error-text"></span>
+            </div>
+            
+            <!-- Tab 1: Sign In Form -->
+            <form id="form-signin" class="space-y-5" onsubmit="handleLogin(event)">
+                <div>
+                    <label for="email" class="block text-sm font-medium text-slate-300 mb-1.5">Email</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        required
+                        autocomplete="email"
+                        class="w-full px-4 py-3 bg-navy-900 border border-slate-600 rounded-lg 
+                               text-white placeholder-slate-500 focus:outline-none focus:ring-2 
+                               focus:ring-zone-green/50 focus:border-zone-green transition-colors"
+                        placeholder="you@company.com">
+                </div>
+                
+                <div>
+                    <label for="password" class="block text-sm font-medium text-slate-300 mb-1.5">Password</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        required
+                        autocomplete="current-password"
+                        class="w-full px-4 py-3 bg-navy-900 border border-slate-600 rounded-lg 
+                               text-white placeholder-slate-500 focus:outline-none focus:ring-2 
+                               focus:ring-zone-green/50 focus:border-zone-green transition-colors"
+                        placeholder="••••••••">
+                </div>
+                
+                <button 
+                    type="submit" 
+                    id="btn-signin"
+                    class="w-full py-3 bg-zone-green hover:bg-green-600 text-white font-semibold 
+                           rounded-lg transition-colors duration-200 shadow-lg shadow-green-500/20">
+                    Sign In
+                </button>
+            </form>
+            
+            <!-- Tab 2: SME Access Form (hidden by default) -->
+            <form id="form-sme" class="space-y-5 hidden" onsubmit="handleSMEAccess(event)">
+                <div>
+                    <label for="magic-token" class="block text-sm font-medium text-slate-300 mb-1.5">
+                        Access Token
+                    </label>
+                    <p class="text-xs text-slate-500 mb-3">
+                        Paste the token from your invitation email, or simply click the link in the email.
+                    </p>
+                    <textarea 
+                        id="magic-token" 
+                        name="token" 
+                        required
+                        rows="3"
+                        class="w-full px-4 py-3 bg-navy-900 border border-slate-600 rounded-lg 
+                               text-white placeholder-slate-500 focus:outline-none focus:ring-2 
+                               focus:ring-zone-green/50 focus:border-zone-green transition-colors
+                               font-mono text-xs"
+                        placeholder="eyJhbGciOiJIUzI1NiIs..."></textarea>
+                </div>
+                
+                <button 
+                    type="submit" 
+                    id="btn-sme"
+                    class="w-full py-3 bg-zone-green hover:bg-green-600 text-white font-semibold 
+                           rounded-lg transition-colors duration-200 shadow-lg shadow-green-500/20">
+                    Access Portal
+                </button>
+            </form>
+        </div>
+        
+        <!-- Zone Dots (product signature) -->
+        <div class="flex justify-center mt-6">
+            <div class="zone-dots">
+                <div class="zone-dot zone-dot-red"></div>
+                <div class="zone-dot zone-dot-yellow"></div>
+                <div class="zone-dot zone-dot-green"></div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <p class="text-center text-slate-600 text-xs mt-4">
+            © 2026 IC Commerce and Consulting. Patent pending.
+        </p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+/**
+ * Tab switching logic.
+ * Toggles visibility of Sign In vs SME Access forms.
+ */
+function switchTab(tab) {
+    const signinTab = document.getElementById('tab-signin');
+    const smeTab = document.getElementById('tab-sme');
+    const signinForm = document.getElementById('form-signin');
+    const smeForm = document.getElementById('form-sme');
+    const errorMsg = document.getElementById('error-msg');
+    
+    // Hide error on tab switch
+    errorMsg.classList.add('hidden');
+    
+    if (tab === 'signin') {
+        signinForm.classList.remove('hidden');
+        smeForm.classList.add('hidden');
+        signinTab.classList.add('text-zone-green', 'border-zone-green');
+        signinTab.classList.remove('text-slate-400', 'border-transparent');
+        smeTab.classList.remove('text-zone-green', 'border-zone-green');
+        smeTab.classList.add('text-slate-400', 'border-transparent');
+    } else {
+        smeForm.classList.remove('hidden');
+        signinForm.classList.add('hidden');
+        smeTab.classList.add('text-zone-green', 'border-zone-green');
+        smeTab.classList.remove('text-slate-400', 'border-transparent');
+        signinTab.classList.remove('text-zone-green', 'border-zone-green');
+        signinTab.classList.add('text-slate-400', 'border-transparent');
+    }
+}
+
+/**
+ * Show an error message in the form.
+ */
+function showError(message) {
+    const errorMsg = document.getElementById('error-msg');
+    const errorText = document.getElementById('error-text');
+    errorText.textContent = message;
+    errorMsg.classList.remove('hidden');
+}
+
+/**
+ * Handle email + password login.
+ * Posts to /auth/login, sets cookie, redirects on success.
+ */
+async function handleLogin(event) {
+    event.preventDefault();
+    const btn = document.getElementById('btn-signin');
+    btn.textContent = 'Signing in...';
+    btn.disabled = true;
+    
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    
+    try {
+        const response = await fetch('/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password }),
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            window.location.href = data.redirect_url;
+        } else {
+            const error = await response.json();
+            showError(error.detail || 'Login failed. Check your credentials.');
+        }
+    } catch (err) {
+        showError('Connection error. Please try again.');
+    } finally {
+        btn.textContent = 'Sign In';
+        btn.disabled = false;
+    }
+}
+
+/**
+ * Handle SME magic-link token verification.
+ * Posts to /auth/sme-access, redirects to SME Portal on success.
+ */
+async function handleSMEAccess(event) {
+    event.preventDefault();
+    const btn = document.getElementById('btn-sme');
+    btn.textContent = 'Verifying...';
+    btn.disabled = true;
+    
+    const token = document.getElementById('magic-token').value.trim();
+    
+    try {
+        const response = await fetch('/auth/sme-access', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token }),
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            window.location.href = data.redirect_url;
+        } else {
+            const error = await response.json();
+            showError(error.detail || 'Invalid or expired token.');
+        }
+    } catch (err) {
+        showError('Connection error. Please try again.');
+    } finally {
+        btn.textContent = 'Access Portal';
+        btn.disabled = false;
+    }
+}
+
+/**
+ * Auto-detect magic-link token in URL params.
+ * If ?token=xxx is present, auto-fill and submit SME form.
+ */
+(function() {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    if (token) {
+        switchTab('sme');
+        document.getElementById('magic-token').value = token;
+        // Auto-submit after brief delay (so user sees what's happening)
+        setTimeout(() => {
+            document.getElementById('form-sme').dispatchEvent(new Event('submit'));
+        }, 500);
+    }
+})();
+</script>
+{% endblock %}
