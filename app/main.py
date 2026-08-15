@@ -1,5 +1,5 @@
 """
-IC-pi Platform: FastAPI Application Entry Point
+IC-π™ Platform: FastAPI Application Entry Point
 ================================================
 Mounts all routers, serves static files and templates.
 
@@ -32,7 +32,7 @@ Base.metadata.create_all(bind=engine)
 # Application Instance
 # ---------------------------------------------------------------------------
 app = FastAPI(
-    title="IC-pi Platform",
+    title="IC-π™ Platform",
     description="IC Performance Index: Discovery Engine & Blueprint Generator",
     version="2.0.0",
 )
@@ -51,7 +51,6 @@ app.add_middleware(
 # ---------------------------------------------------------------------------
 # Static Files (CSS, images, JS)
 # ---------------------------------------------------------------------------
-# Create static directory if it doesn't exist
 os.makedirs("app/static", exist_ok=True)
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
