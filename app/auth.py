@@ -78,6 +78,7 @@ def create_magic_link_token(sme_id: str, discovery_id: str) -> str:
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
 
+
 def decode_magic_link_token(token: str) -> Optional[dict]:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
