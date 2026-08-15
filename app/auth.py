@@ -1,12 +1,15 @@
-IC-π™ Platform: Authentication Utilities
-=========================================
-Handles JWT token creation/validation and password hashing.
+"""
+IC-Pi Platform: Authentication Utilities
+==========================================
+Provides:
+- Password hashing and verification (bcrypt via passlib)
+- JWT creation and decoding (python-jose)
+- Magic-link token creation and decoding (SME access)
 
-Used by:
-- app/routes/auth.py (login + magic-link endpoints)
-- Future middleware for protecting routes
+Used by: app/routes/auth.py
 
-Dependencies: python-jose[cryptography], passlib[bcrypt]
+Environment variables required:
+- SECRET_KEY: Used to sign JWTs (set in Railway)
 """
 
 import os
@@ -17,54 +20,31 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel
 
-# ---------------------------------------------------------------------------
-# Configuration (loaded from environment variables on Railway)
-# ---------------------------------------------------------------------------
-SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-change-in-production")
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("TOKEN_EXPIRE_MINUTES", "480"))  # 8 hours default
 
-# ---------------------------------------------------------------------------
-# Password Hashing
-# ---------------------------------------------------------------------------
+SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-change-in-production")
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_HOURS = 8
+
+
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-def hash_password(plain_password: str) -> str:
-    """Hash a plain-text password for storage."""
-    return pwd_context.hash(plain_password)
-
-
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verify a plain-text password against its stored hash."""
     return pwd_context.verify(plain_password, hashed_password)
 
 
-# ---------------------------------------------------------------------------
-# JWT Token Management
-# ---------------------------------------------------------------------------
+def hash_password(password: str) -> str:
+    return pwd_context.hash(password)
+
+
 class TokenData(BaseModel):
-    """Decoded token payload."""
     user_id: str
     email: str
-    role: str  # "super_admin", "consultant", "leadership", "sme"
+    role: str
 
 
-def create_access_token(user_id: str, email: str, role: str,
-                        expires_delta: Optional[timedelta] = None) -> str:
-    """
-    Create a signed JWT token embedding user identity and role.
-
-    Args:
-        user_id: UUID string of the authenticated user.
-        email: User's email (for display/logging).
-        role: One of: super_admin, consultant, leadership, sme.
-        expires_delta: Custom expiration. Defaults to ACCESS_TOKEN_EXPIRE_MINUTES.
-
-    Returns:
-        Encoded JWT string.
-    """
-    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+def create_access_token(user_id: str, email: str, role: str) -> str:
+    expire = datetime.utcnow() + timedelta(hours=ACCESS_TOKEN_EXPIRE_HOURS)
     payload = {
         "sub": user_id,
         "email": email,
@@ -75,46 +55,23 @@ def create_access_token(user_id: str, email: str, role: str,
 
 
 def decode_access_token(token: str) -> Optional[TokenData]:
-    """
-    Decode and validate a JWT token.
-
-    Returns:
-        TokenData if valid, None if expired or tampered.
-    """
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        return TokenData(
-            user_id=payload["sub"],
-            email=payload["email"],
-            role=payload["role"],
-        )
+        user_id = payload.get("sub")
+        email = payload.get("email")
+        role = payload.get("role")
+        if user_id is None:
+            return None
+        return TokenData(user_id=user_id, email=email, role=role)
     except JWTError:
         return None
 
 
-# ---------------------------------------------------------------------------
-# Magic Link Token (for SME access)
-# ---------------------------------------------------------------------------
-MAGIC_LINK_EXPIRE_HOURS = int(os.getenv("MAGIC_LINK_EXPIRE_HOURS", "72"))
-
-
 def create_magic_link_token(sme_id: str, discovery_id: str) -> str:
-    """
-    Create a short-lived token for SME magic-link access.
-    Binds the SME to a specific Discovery (no password needed).
-
-    Args:
-        sme_id: UUID of the SME record.
-        discovery_id: UUID of the Discovery they're participating in.
-
-    Returns:
-        Encoded JWT string (to be embedded in magic-link URL).
-    """
-    expire = datetime.utcnow() + timedelta(hours=MAGIC_LINK_EXPIRE_HOURS)
+    expire = datetime.utcnow() + timedelta(days=7)
     payload = {
-        "sub": sme_id,
+        "sme_id": sme_id,
         "discovery_id": discovery_id,
-        "role": "sme",
         "type": "magic_link",
         "exp": expire,
     }
@@ -122,20 +79,14 @@ def create_magic_link_token(sme_id: str, discovery_id: str) -> str:
 
 
 def decode_magic_link_token(token: str) -> Optional[dict]:
-    """
-    Decode a magic-link token.
-
-    Returns:
-        Dict with sme_id, discovery_id, role if valid. None otherwise.
-    """
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         if payload.get("type") != "magic_link":
             return None
-        return {
-            "sme_id": payload["sub"],
-            "discovery_id": payload["discovery_id"],
-            "role": payload["role"],
-        }
+        sme_id = payload.get("sme_id")
+        discovery_id = payload.get("discovery_id")
+        if not sme_id or not discovery_id:
+            return None
+        return {"sme_id": sme_id, "discovery_id": discovery_id}
     except JWTError:
         return None
