@@ -22,6 +22,7 @@ from fastapi.templating import Jinja2Templates
 from app.database import engine, Base
 from app.routes import clients, discoveries, engine_routes, blueprint
 from app.routes.auth import router as auth_router
+from app.routes.dashboard import router as dashboard_router
 
 # ---------------------------------------------------------------------------
 # Create database tables on startup (dev convenience; use Alembic for prod)
@@ -59,6 +60,7 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 # ---------------------------------------------------------------------------
 # Screen 1: Auth (login page served at root "/")
 app.include_router(auth_router, tags=["Auth"])
+app.include_router(dashboard_router)  # Screen 2: Consultant Dashboard
 
 # API routes
 app.include_router(clients.router, prefix="/clients", tags=["Clients"])
