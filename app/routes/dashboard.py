@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 
+templates = Jinja2Templates(directory="app/templates")
 router = APIRouter()
 
 # Sample data for Screen 2 (will connect to DB later)
@@ -43,7 +45,7 @@ SAMPLE_PROJECTS = [
 
 @router.get("/dashboard", response_class=HTMLResponse)
 async def consultant_dashboard(request: Request):
-    return request.app.state.templates.TemplateResponse(
+    return templates.TemplateResponse(
         "dashboard.html",
         {
             "request": request,
