@@ -62,7 +62,7 @@ class AuthResponse(BaseModel):
 # ---------------------------------------------------------------------------
 ROLE_REDIRECTS = {
     "super_admin": "/admin/dashboard",
-    "consultant": "/consultant/dashboard",
+    "consultant": "/dashboard",
     "leadership": "/leadership/dashboard",
     "sme": "/sme/portal",
 }
