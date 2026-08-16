@@ -1,6 +1,5 @@
-from fastapi import APIRouter, Request, Depends
+from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
-from app.auth import get_current_user
 
 router = APIRouter()
 
@@ -43,7 +42,7 @@ SAMPLE_PROJECTS = [
 
 
 @router.get("/dashboard", response_class=HTMLResponse)
-async def consultant_dashboard(request: Request, user: dict = Depends(get_current_user)):
+async def consultant_dashboard(request: Request):
     return request.app.state.templates.TemplateResponse(
         "dashboard.html",
         {
