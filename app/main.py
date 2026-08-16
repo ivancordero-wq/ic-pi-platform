@@ -80,3 +80,4 @@ app.include_router(blueprint.router, prefix="/blueprint", tags=["Blueprint"])
 @app.get("/health")
 def health_check():
     return {"status": "healthy", "service": "ic-pi-platform", "version": "2.1.0"}
+    
