@@ -65,10 +65,20 @@
             </select>
           </div>
           <div>
-            <label class="block text-sm text-slate-300 mb-1">Country *</label>
-            <input type="text" name="country" required
+            <label class="block text-sm text-slate-300 mb-1">Contact Name</label>
+            <input type="text" name="contact_name"
                    class="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm focus:border-emerald-500 focus:outline-none"
-                   placeholder="e.g. Mexico">
+                   placeholder="e.g. Juan Perez">
+          </div>
+          <div>
+            <label class="block text-sm text-slate-300 mb-1">Country *</label>
+            <select name="country" required
+                    class="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm focus:border-emerald-500 focus:outline-none">
+              <option value="">Select country...</option>
+              {% for c in countries %}
+              <option value="{{ c }}">{{ c }}</option>
+              {% endfor %}
+            </select>
           </div>
           <div>
             <label class="block text-sm text-slate-300 mb-1">Primary Contact Email</label>
