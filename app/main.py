@@ -48,7 +48,7 @@ app = FastAPI(
 # ---------------------------------------------------------------------------
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Tighten in production
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -63,11 +63,10 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 # ---------------------------------------------------------------------------
 # Routers
 # ---------------------------------------------------------------------------
-# Screen 1: Auth (login page served at root "/")
 app.include_router(auth_router, tags=["Auth"])
-app.include_router(dashboard_router)        # Screen 2: Consultant Dashboard
-app.include_router(project_setup_router)    # Screen 3A: Project Setup
-app.include_router(rho_gate_router)         # Screen 3B: Rho Gate
+app.include_router(dashboard_router)
+app.include_router(project_setup_router)
+app.include_router(rho_gate_router)
 
 # API routes
 app.include_router(clients.router, prefix="/clients", tags=["Clients"])
