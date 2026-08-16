@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+{% block title %}New Project | IC-Pi{% endblock %}
+
+{% block content %}
+<div class="flex min-h-screen">
+
+  <!-- Sidebar Nav (same as dashboard) -->
+  <aside class="w-64 bg-slate-900 border-r border-slate-700 p-6 flex flex-col gap-2">
+    <div class="mb-8">
+      <h2 class="text-lg font-bold text-white tracking-tight">IC-Pi</h2>
+      <p class="text-xs text-slate-400">Licensed Consultant</p>
+    </div>
+    <a href="/dashboard" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 text-sm">
+      <span>📊</span> Dashboard
+    </a>
+    <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 text-sm">
+      <span>📁</span> Projects
+    </a>
+    <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 text-sm">
+      <span>🔍</span> Discoveries
+    </a>
+    <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 text-sm">
+      <span>📄</span> Blueprints
+    </a>
+    <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 text-sm">
+      <span>📈</span> Performance
+    </a>
+    <div class="mt-auto pt-6 border-t border-slate-700">
+      <p class="text-xs text-slate-500">Logged in as</p>
+      <p class="text-sm text-white font-medium">{{ consultant_name }}</p>
+      <a href="/logout" class="text-xs text-red-400 hover:text-red-300 mt-1 inline-block">Sign Out</a>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 p-8 overflow-y-auto">
+
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="text-2xl font-bold text-white">New Discovery Project</h1>
+      <p class="text-slate-400 text-sm mt-1">Register a client, define the process scope, assemble the SME panel, and set governance parameters.</p>
+    </div>
+
+    <form id="project-form" class="space-y-8 max-w-4xl">
+
+      <!-- Section 1: Client -->
+      <div class="bg-slate-800 border border-slate-700 rounded-xl p-6">
+        <h2 class="text-lg font-semibold text-white mb-4">1. Client Information</h2>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm text-slate-300 mb-1">Client Name *</label>
+            <input type="text" name="client_name" required
+                   class="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm focus:border-emerald-500 focus:outline-none"
+                   placeholder="e.g. Seguros Banorte">
+          </div>
+          <div>
+            <label class="block text-sm text-slate-300 mb-1">Industry *</label>
+            <select name="industry" required
+                    class="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm focus:border-emerald-500 focus:outline-none">
+              <option value="">Select industry...</option>
+              {% for industry in industries %}
+              <option value="{{ industry }}">{{ industry }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm text-slate-300 mb-1">Country *</label>
+            <input type="text" name="country" required
+                   class="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm focus:border-emerald-500 focus:outline-none"
+                   placeholder="e.g. Mexico">
+          </div>
+          <div>
+            <label class="block text-sm text-slate-300 mb-1">Primary Contact Email</label>
+            <input type="email" name="contact_email"
+                   class="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm focus:border-emerald-500 focus:outline-none"
+                   placeholder="e.g. jperez@banorte.com">
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 2: Process Scope -->
+      <div class="bg-slate-800 border border-slate-700 rounded-xl p-6">
+        <h2 class="text-lg font-semibold text-white mb-4">2. Process Scope</h2>
+        <p class="text-xs text-slate-400 mb-4">One Discovery = one process. Define the specific operational process being evaluated.</p>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="col-span-2">
+            <label class="block text-sm text-slate-300 mb-1">Process Name *</label>
+            <input type="text" name="process_name" required
+                   class="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm focus:border-emerald-500 focus:outline-none"
+                   placeholder="e.g. Claims Management">
+          </div>
+          <div class="col-span-2">
+            <label class="block text-sm text-slate-300 mb-1">Description</label>
+            <textarea name="process_description" rows="3"
+                      class="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm focus:border-emerald-500 focus:outline-none resize-none"
+                      placeholder="Brief description of the process scope and boundaries..."></textarea>
+          </div>
+          <div>
+            <label class="block text-sm text-slate-300 mb-1">Value-at-Stake *</label>
+            <select name="value_at_stake" required
+                    class="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm focus:border-emerald-500 focus:outline-none">
+              <option value="">Select band...</option>
+              {% for band in value_bands %}
+              <option value="{{ band.factor }}">{{ band.label }}</option>
+              {% endfor %}
+            </select>
+            <p class="text-xs text-slate-500 mt-1">Maps to pricing factor V</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 3: SME Panel -->
+      <div class="bg-slate-800 border border-slate-700 rounded-xl p-6">
+        <h2 class="text-lg font-semibold text-white mb-4">3. SME Panel</h2>
+        <div class="bg-slate-900 border border-slate-600 rounded-lg p-4 mb-4">
+          <p class="text-xs text-slate-400">
+            <strong class="text-emerald-400">Magic Links:</strong> Each SME will receive a one-time access URL. No account needed. Scoped to this Discovery only. Anonymous voting. Expires after completion.
+          </p>
+        </div>
+
+        <!-- SME Table -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm" id="sme-table">
+            <thead>
+              <tr class="text-left text-slate-400 border-b border-slate-700">
+                <th class="pb-2 pr-4">Name</th>
+                <th class="pb-2 pr-4">Email</th>
+                <th class="pb-2 pr-4">Role / Department</th>
+                <th class="pb-2 w-10"></th>
+              </tr>
+            </thead>
+            <tbody id="sme-body">
+              <tr class="sme-row border-b border-slate-700">
+                <td class="py-2 pr-2">
+                  <input type="text" name="sme_name[]" placeholder="Full name"
+                         class="w-full px-2 py-1.5 bg-slate-900 border border-slate-600 rounded text-white text-sm focus:border-emerald-500 focus:outline-none">
+                </td>
+                <td class="py-2 pr-2">
+                  <input type="email" name="sme_email[]" placeholder="email@company.com"
+                         class="w-full px-2 py-1.5 bg-slate-900 border border-slate-600 rounded text-white text-sm focus:border-emerald-500 focus:outline-none">
+                </td>
+                <td class="py-2 pr-2">
+                  <input type="text" name="sme_role[]" placeholder="e.g. Head of Claims"
+                         class="w-full px-2 py-1.5 bg-slate-900 border border-slate-600 rounded text-white text-sm focus:border-emerald-500 focus:outline-none">
+                </td>
+                <td class="py-2 text-center">
+                  <button type="button" onclick="removeSME(this)" class="text-red-400 hover:text-red-300 text-lg">&times;</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="flex items-center justify-between mt-3">
+          <button type="button" onclick="addSME()"
+                  class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white text-sm rounded-lg transition">
+            + Add SME
+          </button>
+          <p class="text-sm text-slate-400">Panel size: <span id="sme-count" class="text-white font-medium">1</span> SME(s) <span class="text-xs text-slate-500">(pricing factor C)</span></p>
+        </div>
+      </div>
+
+      <!-- Section 4: Governance -->
+      <div class="bg-slate-800 border border-slate-700 rounded-xl p-6">
+        <h2 class="text-lg font-semibold text-white mb-4">4. Governance</h2>
+        <div>
+          <label class="block text-sm text-slate-300 mb-2">Disagreement Tolerance (theta) *</label>
+          <div class="flex items-center gap-4">
+            <input type="range" name="theta" min="0.05" max="1.00" step="0.05" value="0.30"
+                   class="flex-1 h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                   oninput="document.getElementById('theta-value').textContent = parseFloat(this.value).toFixed(2)">
+            <span id="theta-value" class="text-white font-bold text-lg w-12 text-center">0.30</span>
+          </div>
+          <p class="text-xs text-slate-400 mt-2">Lower = stricter consensus required among SMEs. Typical range: 0.20 - 0.40. Set by leadership BEFORE the exercise begins.</p>
+        </div>
+      </div>
+
+      <!-- CTAs -->
+      <div class="flex items-center gap-4 pb-8">
+        <button type="submit"
+                class="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg transition text-sm">
+          Create Discovery
+        </button>
+        <button type="button"
+                class="px-6 py-3 bg-slate-700 hover:bg-slate-600 text-slate-300 font-medium rounded-lg transition text-sm">
+          Save as Draft
+        </button>
+        <a href="/dashboard" class="text-sm text-slate-400 hover:text-white ml-4">Cancel</a>
+      </div>
+
+    </form>
+  </main>
+</div>
+
+<script>
+function addSME() {
+  const tbody = document.getElementById('sme-body');
+  const row = document.createElement('tr');
+  row.className = 'sme-row border-b border-slate-700';
+  row.innerHTML = `
+    <td class="py-2 pr-2">
+      <input type="text" name="sme_name[]" placeholder="Full name"
+             class="w-full px-2 py-1.5 bg-slate-900 border border-slate-600 rounded text-white text-sm focus:border-emerald-500 focus:outline-none">
+    </td>
+    <td class="py-2 pr-2">
+      <input type="email" name="sme_email[]" placeholder="email@company.com"
+             class="w-full px-2 py-1.5 bg-slate-900 border border-slate-600 rounded text-white text-sm focus:border-emerald-500 focus:outline-none">
+    </td>
+    <td class="py-2 pr-2">
+      <input type="text" name="sme_role[]" placeholder="e.g. Head of Claims"
+             class="w-full px-2 py-1.5 bg-slate-900 border border-slate-600 rounded text-white text-sm focus:border-emerald-500 focus:outline-none">
+    </td>
+    <td class="py-2 text-center">
+      <button type="button" onclick="removeSME(this)" class="text-red-400 hover:text-red-300 text-lg">&times;</button>
+    </td>
+  `;
+  tbody.appendChild(row);
+  updateSMECount();
+}
+
+function removeSME(btn) {
+  const tbody = document.getElementById('sme-body');
+  if (tbody.rows.length > 1) {
+    btn.closest('tr').remove();
+    updateSMECount();
+  }
+}
+
+function updateSMECount() {
+  const count = document.querySelectorAll('.sme-row').length;
+  document.getElementById('sme-count').textContent = count;
+}
+</script>
+{% endblock %}
