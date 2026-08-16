@@ -1,9 +1,11 @@
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
-templates = Jinja2Templates(directory="app/templates")
+from app.auth import decode_access_token
+
 router = APIRouter()
+templates = Jinja2Templates(directory="app/templates")
 
 # Sample data for Screen 2 (will connect to DB later)
 SAMPLE_PROJECTS = [
@@ -45,6 +47,15 @@ SAMPLE_PROJECTS = [
 
 @router.get("/dashboard", response_class=HTMLResponse)
 async def consultant_dashboard(request: Request):
+    # Check auth cookie
+    token = request.cookies.get("access_token")
+    if not token:
+        return RedirectResponse(url="/", status_code=303)
+
+    user_data = decode_access_token(token)
+    if not user_data:
+        return RedirectResponse(url="/", status_code=303)
+
     return templates.TemplateResponse(
         "dashboard.html",
         {
