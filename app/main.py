@@ -28,7 +28,8 @@ from app.routes.dashboard import router as dashboard_router
 # Create database tables on startup (dev convenience; use Alembic for prod)
 # ---------------------------------------------------------------------------
 Base.metadata.create_all(bind=engine)
-
+from app.seed_users import seed_default_users
+seed_default_users()
 # ---------------------------------------------------------------------------
 # Application Instance
 # ---------------------------------------------------------------------------
