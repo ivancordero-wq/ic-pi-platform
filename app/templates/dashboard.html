@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | IC-Pi{% endblock %}
+
+{% block content %}
+<div class="flex min-h-screen">
+
+  <!-- Sidebar Nav -->
+  <aside class="w-64 bg-slate-900 border-r border-slate-700 p-6 flex flex-col gap-2">
+    <div class="mb-8">
+      <h2 class="text-lg font-bold text-white tracking-tight">IC-Pi</h2>
+      <p class="text-xs text-slate-400">Licensed Consultant</p>
+    </div>
+    <a href="/dashboard" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-slate-800 text-white text-sm font-medium">
+      <span>📊</span> Dashboard
+    </a>
+    <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 text-sm">
+      <span>📁</span> Projects
+    </a>
+    <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 text-sm">
+      <span>🔍</span> Discoveries
+    </a>
+    <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 text-sm">
+      <span>📄</span> Blueprints
+    </a>
+    <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 text-sm">
+      <span>📈</span> Performance
+    </a>
+    <div class="mt-auto pt-6 border-t border-slate-700">
+      <p class="text-xs text-slate-500">Logged in as</p>
+      <p class="text-sm text-white font-medium">{{ consultant_name }}</p>
+      <a href="/logout" class="text-xs text-red-400 hover:text-red-300 mt-1 inline-block">Sign Out</a>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 p-8">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="text-2xl font-bold text-white">Portfolio Dashboard</h1>
+        <p class="text-slate-400 text-sm mt-1">Welcome back, {{ consultant_name }}</p>
+      </div>
+      <a href="#" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium rounded-lg transition">
+        + New Project
+      </a>
+    </div>
+
+    <!-- Pipeline Strip (Filter) -->
+    <div class="flex gap-2 mb-6">
+      <button onclick="filterProjects('All')"
+              class="px-4 py-1.5 rounded-full text-sm font-medium transition
+                     {% if active_filter == 'All' %}bg-white text-slate-900{% else %}bg-slate-800 text-slate-300 hover:bg-slate-700{% endif %}">
+        All
+      </button>
+      <button onclick="filterProjects('Prospect')"
+              class="px-4 py-1.5 rounded-full text-sm font-medium transition
+                     {% if active_filter == 'Prospect' %}bg-blue-500 text-white{% else %}bg-slate-800 text-slate-300 hover:bg-slate-700{% endif %}">
+        Prospect
+      </button>
+      <button onclick="filterProjects('Active')"
+              class="px-4 py-1.5 rounded-full text-sm font-medium transition
+                     {% if active_filter == 'Active' %}bg-amber-500 text-white{% else %}bg-slate-800 text-slate-300 hover:bg-slate-700{% endif %}">
+        Active
+      </button>
+      <button onclick="filterProjects('Complete')"
+              class="px-4 py-1.5 rounded-full text-sm font-medium transition
+                     {% if active_filter == 'Complete' %}bg-emerald-500 text-white{% else %}bg-slate-800 text-slate-300 hover:bg-slate-700{% endif %}">
+        Complete
+      </button>
+    </div>
+
+    <!-- Project Cards -->
+    <div class="space-y-4" id="project-list">
+      {% for project in projects %}
+      <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 hover:border-slate-500 transition project-card"
+           data-stage="{{ project.stage }}">
+
+        <!-- Top Row -->
+        <div class="flex items-center justify-between cursor-pointer"
+             onclick="toggleExpand('{{ project.id }}')">
+          <div class="flex items-center gap-4">
+            <!-- Zone Badge -->
+            <span class="inline-flex items-center justify-center w-16 h-8 rounded text-xs font-bold
+              {% if project.zone == 'GREEN' %}bg-emerald-900 text-emerald-300 border border-emerald-600
+              {% elif project.zone == 'YELLOW' %}bg-amber-900 text-amber-300 border border-amber-600
+              {% elif project.zone == 'RED' %}bg-red-900 text-red-300 border border-red-600
+              {% else %}bg-slate-700 text-slate-400 border border-slate-600{% endif %}">
+              {{ project.zone }}
+            </span>
+            <div>
+              <h3 class="text-white font-semibold">{{ project.client }}</h3>
+              <p class="text-slate-400 text-sm">{{ project.process }}</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-6">
+            <!-- Progress -->
+            <div class="text-right">
+              <p class="text-xs text-slate-400">Discovery Progress</p>
+              <p class="text-sm text-white font-medium">{{ project.forms_completed }} of 7 forms</p>
+            </div>
+            <!-- Progress Bar -->
+            <div class="w-32 h-2 bg-slate-700 rounded-full overflow-hidden">
+              <div class="h-full rounded-full transition-all
+                {% if project.zone == 'GREEN' %}bg-emerald-500
+                {% elif project.zone == 'YELLOW' %}bg-amber-500
+                {% elif project.zone == 'RED' %}bg-red-500
+                {% else %}bg-slate-500{% endif %}"
+                   style="width: {{ (project.forms_completed / 7 * 100) | int }}%">
+              </div>
+            </div>
+            <!-- Expand Arrow -->
+            <span class="text-slate-400 text-lg" id="arrow-{{ project.id }}">&#9662;</span>
+          </div>
+        </div>
+
+        <!-- Expandable Detail (hidden by default) -->
+        <div class="hidden mt-5 pt-5 border-t border-slate-700" id="detail-{{ project.id }}">
+
+          <!-- 7-Step Rail -->
+          <div class="flex items-center gap-1 mb-4">
+            {% set form_names = ['Setup', 'Rho Gate', 'Weights', 'KPI Map', 'Tau Set', 'Scoring', 'Engine'] %}
+            {% for i in range(7) %}
+            <div class="flex-1 flex flex-col items-center">
+              <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold
+                {% if i < project.forms_completed %}bg-emerald-600 text-white
+                {% elif i == project.forms_completed %}bg-amber-500 text-white ring-2 ring-amber-300
+                {% else %}bg-slate-700 text-slate-500{% endif %}">
+                {{ i + 1 }}
+              </div>
+              <p class="text-xs mt-1 {% if i < project.forms_completed %}text-emerald-400{% elif i == project.forms_completed %}text-amber-300{% else %}text-slate-500{% endif %}">
+                {{ form_names[i] }}
+              </p>
+            </div>
+            {% if not loop.last %}
+            <div class="flex-0 w-4 h-0.5 mt-[-12px]
+              {% if i < project.forms_completed %}bg-emerald-600{% else %}bg-slate-700{% endif %}">
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+
+          <!-- Meta Row -->
+          <div class="flex gap-8 text-sm">
+            <div>
+              <span class="text-slate-400">SMEs:</span>
+              <span class="text-white ml-1">{{ project.sme_count }}</span>
+            </div>
+            <div>
+              <span class="text-slate-400">Start:</span>
+              <span class="text-white ml-1">{{ project.start_date or 'Pending' }}</span>
+            </div>
+            <div>
+              <span class="text-slate-400">Tau Status:</span>
+              <span class="text-white ml-1">{{ project.tau_status }}</span>
+            </div>
+            <div class="ml-auto">
+              <a href="#" class="text-emerald-400 hover:text-emerald-300 font-medium">
+                Open Project &rarr;
+              </a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      {% endfor %}
+    </div>
+
+  </main>
+</div>
+
+<script>
+function toggleExpand(projectId) {
+  const detail = document.getElementById('detail-' + projectId);
+  const arrow = document.getElementById('arrow-' + projectId);
+  if (detail.classList.contains('hidden')) {
+    detail.classList.remove('hidden');
+    arrow.innerHTML = '&#9652;';
+  } else {
+    detail.classList.add('hidden');
+    arrow.innerHTML = '&#9662;';
+  }
+}
+
+function filterProjects(stage) {
+  const cards = document.querySelectorAll('.project-card');
+  cards.forEach(card => {
+    if (stage === 'All' || card.dataset.stage === stage) {
+      card.style.display = 'block';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+}
+</script>
+{% endblock %}
