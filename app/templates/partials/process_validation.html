@@ -1,0 +1,76 @@
+<!-- Process Disambiguation Panel (HTMX partial) -->
+
+{% if matches %}
+<div class="mt-4 p-4 rounded-lg border border-cyan-500/30 bg-slate-800/80">
+    <p class="text-sm text-cyan-300 font-semibold mb-3">
+        Did you mean one of these operational processes?
+    </p>
+
+    <div class="space-y-2">
+        {% for match in matches %}
+        <button type="button"
+                onclick="selectProcess('{{ match }}')"
+                class="w-full text-left px-4 py-2 rounded border border-slate-600 hover:border-cyan-400 hover:bg-slate-700/60 text-white text-sm transition">
+            {{ match }}
+        </button>
+        {% endfor %}
+    </div>
+
+    {% if attempt < 3 %}
+    <div class="mt-4 pt-3 border-t border-slate-700">
+        <p class="text-xs text-slate-400 mb-2">None of these fit?</p>
+        <button type="button"
+                onclick="rephraseProcess()"
+                class="text-sm text-yellow-400 hover:text-yellow-300 underline">
+            Rephrase your process name (attempt {{ attempt }}/3)
+        </button>
+    </div>
+    {% else %}
+    <!-- Max attempts reached: show disclaimer + proceed -->
+    <div class="mt-4 pt-3 border-t border-slate-700">
+        <div class="p-3 rounded bg-yellow-900/30 border border-yellow-600/40 mb-3">
+            <p class="text-xs text-yellow-300">
+                &#9888; The process name could not be matched to an industry-standard operation.
+                The AI-generated parameter list may include less precise or overly broad parameters.
+                You can refine parameters manually during the Rho Gate.
+            </p>
+        </div>
+        <button type="button"
+                onclick="proceedAsIs()"
+                class="px-4 py-2 rounded bg-yellow-600 hover:bg-yellow-500 text-black text-sm font-semibold transition">
+            Proceed as-is
+        </button>
+    </div>
+    {% endif %}
+
+    <div class="mt-3">
+        <button type="button"
+                onclick="cancelValidation()"
+                class="text-xs text-slate-400 hover:text-white underline">
+            &#8592; Back to Project Setup
+        </button>
+    </div>
+</div>
+
+{% elif no_catalog %}
+<!-- Industry not in catalog -->
+<div class="mt-4 p-4 rounded-lg border border-yellow-500/30 bg-slate-800/80">
+    <div class="p-3 rounded bg-yellow-900/30 border border-yellow-600/40 mb-3">
+        <p class="text-xs text-yellow-300">
+            &#9888; This industry does not yet have a mapped process catalog.
+            AI will generate parameters based on your input directly.
+            You can refine during the Rho Gate.
+        </p>
+    </div>
+    <button type="button"
+            onclick="proceedAsIs()"
+            class="px-4 py-2 rounded bg-cyan-600 hover:bg-cyan-500 text-white text-sm font-semibold transition">
+        Continue with "{{ original_input }}"
+    </button>
+    <button type="button"
+            onclick="cancelValidation()"
+            class="ml-2 text-xs text-slate-400 hover:text-white underline">
+        &#8592; Back
+    </button>
+</div>
+{% endif %}
