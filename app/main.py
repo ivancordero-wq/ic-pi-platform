@@ -28,6 +28,7 @@ from app.routes.auth import router as auth_router
 from app.routes.dashboard import router as dashboard_router
 from app.routes.project_setup import router as project_setup_router
 from app.routes.rho_gate import router as rho_gate_router
+from app.routes.sme_portal import router as sme_portal_router
 # ---------------------------------------------------------------------------
 # Create database tables on startup (dev convenience; use Alembic for prod)
 # ---------------------------------------------------------------------------
@@ -66,6 +67,7 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 app.include_router(auth_router, tags=["Auth"])
 app.include_router(dashboard_router)
 app.include_router(project_setup_router)
+app.include_router(sme_portal_router)         # Screen 4: SME Portal
 app.include_router(rho_gate_router)
 
 # API routes
