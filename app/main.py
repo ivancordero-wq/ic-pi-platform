@@ -30,6 +30,7 @@ from app.routes.project_setup import router as project_setup_router
 from app.routes.rho_gate import router as rho_gate_router
 from app.routes.sme_portal import router as sme_portal_router
 from app.routes.theta_gate import router as theta_gate_router
+from app.routes.sme_ranking import router as sme_ranking_router
 # ---------------------------------------------------------------------------
 # Create database tables on startup (dev convenience; use Alembic for prod)
 # ---------------------------------------------------------------------------
@@ -71,6 +72,7 @@ app.include_router(project_setup_router)
 app.include_router(sme_portal_router)         # Screen 4: SME Portal
 app.include_router(rho_gate_router)
 app.include_router(theta_gate_router)
+app.include_router(sme_ranking_router)
 
 # API routes
 app.include_router(clients.router, prefix="/clients", tags=["Clients"])
