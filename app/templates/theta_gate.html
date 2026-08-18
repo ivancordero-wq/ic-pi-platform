@@ -12,7 +12,7 @@
             <h1 class="text-2xl font-bold text-white">Parameter Weighting + Theta Validation</h1>
         </div>
         <p class="text-slate-400">
-            {{ discovery.name }} &mdash; {{ process.name }}
+            {{ discovery.name }}
         </p>
         <p class="text-xs text-slate-500 mt-1">Level 1: W<sub>i</sub> weights (relative importance of parameters)</p>
     </div>
@@ -130,7 +130,7 @@
     </div>
 
     <!-- Divergent Parameters Warning -->
-    {% if divergent_count > 0 and theta.status != "locked" %}
+    {% if divergent_count > 0 and theta.status != "locked" and has_responses %}
     <div class="bg-red-900/20 border border-red-700/50 rounded-lg p-4 mb-6">
         <h4 class="text-red-400 font-semibold text-sm mb-2">Dangerous Disagreement Detected</h4>
         <p class="text-slate-300 text-sm">The following parameters have variance exceeding theta ({{ theta.threshold }}):</p>
