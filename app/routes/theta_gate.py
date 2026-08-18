@@ -44,34 +44,23 @@ def compute_variance(ranks):
     return sum((r - mean) ** 2 for r in ranks) / len(ranks)
 
 
-def compute_theta_data(process_id, db: Session, theta_threshold: float, current_round: int):
+def compute_theta_data(process_id, db, theta_threshold, current_round):
     """
     Compute variance and convergence for all survived parameters.
     Returns list of dicts with parameter info, avg rank, variance, convergence status.
     """
-    # Get survived parameters (those that passed rho gate)
     parameters = db.query(Parameter).filter(
-        Parameter.process_id == process_id,
-        Parameter.is_active_program == True
+        Parameter.process_id == process_id
     ).all()
 
-    if not parameters:
-        # Fallback: get all parameters for this process
-        parameters = db.query(Parameter).filter(
-            Parameter.process_id == process_id
-        ).all()
-
-    # Get all SMEs for this discovery
     process = db.query(Process).filter(Process.id == process_id).first()
     smes = db.query(SME).filter(SME.discovery_id == process.discovery_id).all()
     total_smes = len(smes)
 
-    # Determine which round to read rankings from
     read_round = current_round if current_round > 0 else 1
 
     results = []
     for param in parameters:
-        # Check if already locked
         locked = db.query(ParameterWeight).filter(
             ParameterWeight.parameter_id == param.id
         ).first()
@@ -91,7 +80,6 @@ def compute_theta_data(process_id, db: Session, theta_threshold: float, current_
             })
             continue
 
-        # Get rankings for this parameter in current round
         rankings = db.query(ParameterRanking).filter(
             ParameterRanking.parameter_id == param.id,
             ParameterRanking.round_number == read_round
@@ -145,7 +133,6 @@ def normalize_weights(param_data):
     if not converged:
         return param_data
 
-    # Inverse rank: weight = 1/avg_rank, then normalize
     inverse_sum = sum(1.0 / p["avg_rank"] for p in converged if p["avg_rank"] > 0)
 
     if inverse_sum == 0:
@@ -172,7 +159,6 @@ async def theta_gate_view(request: Request, process_id: str):
 
         discovery = db.query(Discovery).filter(Discovery.id == process.discovery_id).first()
 
-        # Get or create theta gate record
         theta = db.query(ThetaGate).filter(ThetaGate.process_id == process_id).first()
         if not theta:
             theta = ThetaGate(
@@ -185,21 +171,17 @@ async def theta_gate_view(request: Request, process_id: str):
             db.commit()
             db.refresh(theta)
 
-        # Compute parameter data
         param_data, parameters, total_smes = compute_theta_data(
             process_id, db, theta.threshold, theta.current_round
         )
 
-        # Normalize weights for converged parameters
         param_data = normalize_weights(param_data)
 
-        # Summary counts
         converged_count = sum(1 for p in param_data if p["converged"])
         divergent_count = sum(1 for p in param_data if not p["converged"])
         total_params = len(param_data)
         all_converged = divergent_count == 0 and total_params > 0
 
-        # Check if any SME has submitted rankings this round
         has_responses = any(p["responses"] > 0 for p in param_data)
 
         return templates.TemplateResponse("theta_gate.html", {
@@ -232,7 +214,6 @@ async def trigger_rerank_round(request: Request, process_id: str):
             return RedirectResponse(url=f"/theta/{process_id}", status_code=302)
 
         if theta.current_round >= 3:
-            # Max rounds reached
             return RedirectResponse(url=f"/theta/{process_id}", status_code=302)
 
         theta.current_round += 1
@@ -256,13 +237,11 @@ async def lock_theta_gate(request: Request, process_id: str):
         if not theta:
             return RedirectResponse(url=f"/theta/{process_id}", status_code=302)
 
-        # Compute final weights and lock them
         param_data, parameters, total_smes = compute_theta_data(
             process_id, db, theta.threshold, theta.current_round
         )
         param_data = normalize_weights(param_data)
 
-        # Save locked weights
         for p in param_data:
             if p["converged"] and p["weight"] is not None:
                 existing = db.query(ParameterWeight).filter(
@@ -281,14 +260,18 @@ async def lock_theta_gate(request: Request, process_id: str):
         theta.status = "locked"
         theta.locked_at = datetime.utcnow()
 
-        # Update discovery status
         process = db.query(Process).filter(Process.id == process_id).first()
         discovery = db.query(Discovery).filter(Discovery.id == process.discovery_id).first()
         discovery.status = "theta_locked"
 
         db.commit()
 
-        @router.get("/discovery/{discovery_id}/theta-gate", response_class=HTMLResponse)
+        return RedirectResponse(url=f"/theta/{process_id}", status_code=302)
+    finally:
+        db.close()
+
+
+@router.get("/discovery/{discovery_id}/theta-gate", response_class=HTMLResponse)
 async def theta_gate_by_discovery(request: Request, discovery_id: str):
     """Convenience route: looks up process from discovery, then renders theta gate."""
     user = require_auth(request)
@@ -301,9 +284,5 @@ async def theta_gate_by_discovery(request: Request, discovery_id: str):
         if not process:
             return RedirectResponse(url="/dashboard", status_code=302)
         return RedirectResponse(url=f"/theta/{process.id}", status_code=302)
-    finally:
-        db.close()
-
-        return RedirectResponse(url=f"/theta/{process_id}", status_code=302)
     finally:
         db.close()
