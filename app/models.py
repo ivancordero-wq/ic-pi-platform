@@ -237,3 +237,50 @@ class ParameterWeight(Base):
 
     parameter = relationship("Parameter", backref="locked_weight")
     process = relationship("Process", backref="locked_weights")
+
+class KPIRanking(Base):
+    __tablename__ = "kpi_rankings"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    sme_id = Column(UUID(as_uuid=True), ForeignKey("smes.id"), nullable=False)
+    kpi_id = Column(UUID(as_uuid=True), ForeignKey("kpis.id"), nullable=False)
+    parameter_id = Column(UUID(as_uuid=True), ForeignKey("parameters.id"), nullable=False)
+    round_number = Column(Integer, nullable=False)
+    rank_position = Column(Integer, nullable=False)
+    submitted_at = Column(DateTime, default=datetime.utcnow)
+
+    __table_args__ = (
+        UniqueConstraint("sme_id", "kpi_id", "round_number", name="uq_kpi_ranking_per_sme_kpi_round"),
+    )
+
+    sme = relationship("SME", backref="kpi_rankings")
+    kpi = relationship("KPI", backref="rankings")
+    parameter = relationship("Parameter", backref="kpi_rankings")
+
+
+class ThetaGateL2(Base):
+    __tablename__ = "theta_gates_l2"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    parameter_id = Column(UUID(as_uuid=True), ForeignKey("parameters.id"), nullable=False, unique=True)
+    threshold = Column(Float, nullable=False, default=1.5)
+    current_round = Column(Integer, default=0)
+    status = Column(String(50), default="pending")
+    locked_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    parameter = relationship("Parameter", backref="theta_gate_l2")
+
+
+class KPIWeightLocked(Base):
+    __tablename__ = "kpi_weights_locked"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    kpi_id = Column(UUID(as_uuid=True), ForeignKey("kpis.id"), nullable=False, unique=True)
+    parameter_id = Column(UUID(as_uuid=True), ForeignKey("parameters.id"), nullable=False)
+    weight_normalized = Column(Float, nullable=False)
+    locked_at = Column(DateTime, default=datetime.utcnow)
+    locked_by_round = Column(Integer, nullable=False)
+
+    kpi = relationship("KPI", backref="locked_weight")
+    parameter = relationship("Parameter", backref="locked_kpi_weights")
