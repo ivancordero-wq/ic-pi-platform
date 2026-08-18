@@ -288,6 +288,22 @@ async def lock_theta_gate(request: Request, process_id: str):
 
         db.commit()
 
+        @router.get("/discovery/{discovery_id}/theta-gate", response_class=HTMLResponse)
+async def theta_gate_by_discovery(request: Request, discovery_id: str):
+    """Convenience route: looks up process from discovery, then renders theta gate."""
+    user = require_auth(request)
+    if not user:
+        return RedirectResponse(url="/", status_code=302)
+
+    db = next(get_db())
+    try:
+        process = db.query(Process).filter(Process.discovery_id == discovery_id).first()
+        if not process:
+            return RedirectResponse(url="/dashboard", status_code=302)
+        return RedirectResponse(url=f"/theta/{process.id}", status_code=302)
+    finally:
+        db.close()
+
         return RedirectResponse(url=f"/theta/{process_id}", status_code=302)
     finally:
         db.close()
