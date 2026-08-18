@@ -190,3 +190,50 @@ class User(Base):
     role = Column(String(50), default="sme")
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+class ParameterRanking(Base):
+    __tablename__ = "parameter_rankings"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    sme_id = Column(UUID(as_uuid=True), ForeignKey("smes.id"), nullable=False)
+    parameter_id = Column(UUID(as_uuid=True), ForeignKey("parameters.id"), nullable=False)
+    process_id = Column(UUID(as_uuid=True), ForeignKey("processes.id"), nullable=False)
+    round_number = Column(Integer, nullable=False)
+    rank_position = Column(Integer, nullable=False)
+    submitted_at = Column(DateTime, default=datetime.utcnow)
+
+    __table_args__ = (
+        UniqueConstraint("sme_id", "parameter_id", "round_number", name="uq_ranking_per_sme_param_round"),
+    )
+
+    sme = relationship("SME", backref="parameter_rankings")
+    parameter = relationship("Parameter", backref="rankings")
+    process = relationship("Process", backref="parameter_rankings")
+
+
+class ThetaGate(Base):
+    __tablename__ = "theta_gates"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    process_id = Column(UUID(as_uuid=True), ForeignKey("processes.id"), nullable=False, unique=True)
+    threshold = Column(Float, nullable=False, default=1.5)
+    current_round = Column(Integer, default=0)
+    status = Column(String(50), default="pending")
+    locked_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    process = relationship("Process", backref="theta_gate")
+
+
+class ParameterWeight(Base):
+    __tablename__ = "parameter_weights"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    parameter_id = Column(UUID(as_uuid=True), ForeignKey("parameters.id"), nullable=False, unique=True)
+    process_id = Column(UUID(as_uuid=True), ForeignKey("processes.id"), nullable=False)
+    weight_normalized = Column(Float, nullable=False)
+    locked_at = Column(DateTime, default=datetime.utcnow)
+    locked_by_round = Column(Integer, nullable=False)
+
+    parameter = relationship("Parameter", backref="locked_weight")
+    process = relationship("Process", backref="locked_weights")
