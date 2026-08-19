@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}KPI Weighting + Theta Level 2{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-8">
+
+    <!-- Header -->
+    <div class="mb-6">
+        <div class="flex items-center gap-3 mb-2">
+            <span class="text-3xl font-bold text-cyan-400">&theta;<sub>L2</sub></span>
+            <h1 class="text-2xl font-bold text-white">KPI Mapping + Weighting</h1>
+        </div>
+        <p class="text-slate-400">{{ discovery.name }}</p>
+        <p class="text-xs text-slate-500 mt-1">Level 2: w<sub>ij</sub> weights (relative importance of KPIs within each parameter)</p>
+    </div>
+
+    <!-- Rules Callout -->
+    <div class="bg-slate-800/60 border border-cyan-700/40 rounded-lg p-4 mb-6">
+        <h3 class="text-sm font-semibold text-cyan-300 uppercase tracking-wide mb-2">Theta Validation Rules (Level 2: KPI Weights)</h3>
+        <ol class="text-sm text-slate-300 space-y-1 list-decimal list-inside">
+            <li>AI-Hybrid proposes 5 KPIs per parameter (Miller's Law: cognitive cap).</li>
+            <li>SMEs rank KPI importance within each parameter independently. Anonymous.</li>
+            <li>System computes variance per KPI. If sigma squared is less than or equal to theta, normalize into w<sub>ij</sub>, lock.</li>
+            <li>If sigma squared exceeds theta, Delphi re-rank (only divergent KPIs re-surface).</li>
+            <li>Maximum 3 rounds per parameter. Divergent after round 3 = Legitimate Divergence.</li>
+            <li>Exit: All KPIs in all parameters converged, w<sub>ij</sub> locked, proceed to tau Designation.</li>
+        </ol>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+        <div class="bg-slate-800 rounded-lg p-3 text-center">
+            <p class="text-xs text-slate-400 uppercase">Parameters</p>
+            <p class="text-xl font-bold text-white">{{ total_params }}</p>
+        </div>
+        <div class="bg-slate-800 rounded-lg p-3 text-center">
+            <p class="text-xs text-slate-400 uppercase">Total KPIs</p>
+            <p class="text-xl font-bold text-white">{{ total_kpis }}</p>
+        </div>
+        <div class="bg-slate-800 rounded-lg p-3 text-center">
+            <p class="text-xs text-slate-400 uppercase">SMEs</p>
+            <p class="text-xl font-bold text-white">{{ total_smes }}</p>
+        </div>
+        <div class="bg-slate-800 rounded-lg p-3 text-center">
+            <p class="text-xs text-slate-400 uppercase">KPIs Converged</p>
+            <p class="text-xl font-bold text-green-400">{{ total_converged_kpis }}</p>
+        </div>
+        <div class="bg-slate-800 rounded-lg p-3 text-center">
+            <p class="text-xs text-slate-400 uppercase">KPIs Divergent</p>
+            <p class="text-xl font-bold {% if total_divergent_kpis > 0 %}text-red-400{% else %}text-slate-500{% endif %}">{{ total_divergent_kpis }}</p>
+        </div>
+    </div>
+
+    <!-- Accordion: One block per parameter -->
+    <div class="space-y-3 mb-6">
+        {% for block in accordion_data %}
+        <details class="bg-slate-800/40 rounded-lg border {% if block.all_converged %}border-green-700/50{% elif block.divergent > 0 and block.theta_l2.current_round > 0 %}border-red-700/50{% else %}border-slate-700/50{% endif %}" {% if block.divergent > 0 and block.theta_l2.current_round > 0 %}open{% endif %}>
+            <summary class="p-4 cursor-pointer flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="text-white font-semibold">{{ block.param_name }}</span>
+                    <span class="text-xs text-cyan-400">W<sub>i</sub> = {{ block.w_i }}%</span>
+                    <span class="text-xs text-slate-400">{{ block.kpi_count }} KPIs</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    {% if block.all_converged or block.theta_l2.status == "locked" %}
+                    <span class="px-2 py-0.5 rounded text-xs bg-green-900/50 text-green-300 border border-green-700/50">All Locked</span>
+                    {% else %}
+                    <span class="text-xs text-green-400">{{ block.converged }} converged</span>
+                    {% if block.divergent > 0 %}
+                    <span class="text-xs text-red-400">{{ block.divergent }} divergent</span>
+                    {% endif %}
+                    <span class="text-xs text-slate-500">Round {{ block.theta_l2.current_round }}/3</span>
+                    {% endif %}
+                </div>
+            </summary>
+
+            <div class="px-4 pb-4">
+                <!-- KPI Table -->
+                <table class="w-full text-sm mt-2">
+                    <thead>
+                        <tr class="border-b border-slate-700">
+                            <th class="text-left p-2 text-slate-400 font-medium">KPI</th>
+                            <th class="text-center p-2 text-slate-400 font-medium">Source</th>
+                            <th class="text-center p-2 text-slate-400 font-medium">Responses</th>
+                            <th class="text-center p-2 text-slate-400 font-medium">Avg Rank</th>
+                            <th class="text-center p-2 text-slate-400 font-medium">Variance</th>
+                            <th class="text-center p-2 text-slate-400 font-medium">w<sub>ij</sub></th>
+                            <th class="text-center p-2 text-slate-400 font-medium">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for kpi in block.kpis %}
+                        <tr class="border-b border-slate-700/30 {% if not kpi.converged and kpi.variance is not none %}bg-red-900/10{% endif %}">
+                            <td class="p-2">
+                                <p class="text-white text-sm">{{ kpi.name }}</p>
+                                {% if kpi.description %}
+                                <p class="text-slate-500 text-xs">{{ kpi.description }}</p>
+                                {% endif %}
+                            </td>
+                            <td class="text-center p-2">
+                                <span class="px-2 py-0.5 rounded text-xs {% if kpi.source == 'ai' %}bg-purple-900/50 text-purple-300{% elif kpi.source == 'regulation' %}bg-blue-900/50 text-blue-300{% else %}bg-slate-700 text-slate-300{% endif %}">
+                                    {{ kpi.source }}
+                                </span>
+                            </td>
+                            <td class="text-center p-2 text-slate-300">{{ kpi.responses }} / {{ total_smes }}</td>
+                            <td class="text-center p-2 text-slate-300">{% if kpi.avg_rank is not none %}{{ kpi.avg_rank }}{% else %}&mdash;{% endif %}</td>
+                            <td class="text-center p-2 text-slate-300">{% if kpi.variance is not none %}{{ kpi.variance }}{% else %}&mdash;{% endif %}</td>
+                            <td class="text-center p-2 text-cyan-300">{% if kpi.weight is not none %}{{ (kpi.weight * 100) | round(1) }}%{% else %}&mdash;{% endif %}</td>
+                            <td class="text-center p-2">
+                                {% if kpi.locked %}
+                                <span class="px-2 py-0.5 rounded text-xs bg-green-900/50 text-green-300 border border-green-700/50">Locked</span>
+                                {% elif kpi.converged and kpi.variance is not none %}
+                                <span class="px-2 py-0.5 rounded text-xs bg-green-900/50 text-green-300">Converged</span>
+                                {% elif kpi.variance is not none %}
+                                <span class="px-2 py-0.5 rounded text-xs bg-red-900/50 text-red-300">Divergent</span>
+                                {% else %}
+                                <span class="px-2 py-0.5 rounded text-xs bg-slate-700 text-slate-400">Pending</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <!-- Per-parameter CTAs -->
+                {% if block.theta_l2.status != "locked" %}
+                <div class="flex gap-3 justify-end mt-3">
+                    {% if block.theta_l2.current_round < 3 %}
+                    <form method="POST" action="/discovery/{{ discovery.id }}/kpi-weighting/{{ block.param_id }}/trigger-round">
+                        <button type="submit" class="px-4 py-1.5 bg-yellow-600 hover:bg-yellow-500 text-white text-sm font-semibold rounded-lg transition">
+                            {% if block.theta_l2.current_round == 0 %}Start Round 1{% else %}Trigger Round {{ block.theta_l2.current_round + 1 }}{% endif %}
+                        </button>
+                    </form>
+                    {% endif %}
+                    {% if block.all_converged %}
+                    <form method="POST" action="/discovery/{{ discovery.id }}/kpi-weighting/{{ block.param_id }}/lock">
+                        <button type="submit" class="px-4 py-1.5 bg-green-600 hover:bg-green-500 text-white text-sm font-semibold rounded-lg transition">
+                            Lock KPI Weights
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </details>
+        {% endfor %}
+    </div>
+
+    <!-- Global CTA -->
+    {% if all_params_locked %}
+    <div class="bg-green-900/30 border border-green-600/50 rounded-lg p-3 mb-6 text-center">
+        <span class="text-green-400 font-semibold">ALL KPI WEIGHTS LOCKED</span>
+        <span class="text-slate-400 text-sm ml-2">Level 2 complete. Proceed to tau Designation.</span>
+    </div>
+    {% elif total_converged_kpis == total_kpis and total_kpis > 0 %}
+    <div class="flex justify-end">
+        <form method="POST" action="/discovery/{{ discovery.id }}/kpi-weighting/lock-all">
+            <button type="submit" class="px-6 py-2.5 bg-green-600 hover:bg-green-500 text-white font-semibold rounded-lg transition">
+                Lock All KPI Weights & Proceed to &tau; Designation
+            </button>
+        </form>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
