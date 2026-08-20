@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Engine Run: Results{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-8">
+
+    {% if error %}
+    <!-- Error State -->
+    <div class="bg-red-900/30 border border-red-700/50 rounded-lg p-6 text-center">
+        <p class="text-red-300 text-lg">{{ error }}</p>
+        <a href="/discovery/{{ discovery.id }}/kpi-scoring" class="text-cyan-400 underline mt-3 inline-block">Go back to KPI Scoring</a>
+    </div>
+    {% elif result %}
+
+    <!-- Header -->
+    <div class="mb-6">
+        <div class="flex items-center gap-3 mb-2">
+            <span class="text-3xl font-bold text-white">NPI</span>
+            <h1 class="text-2xl font-bold text-white">Engine Results</h1>
+        </div>
+        <p class="text-slate-400">{{ discovery.name }}</p>
+        <p class="text-xs text-slate-500 mt-1">NPI = SUM[W<sub>i</sub> x alpha<sub>i</sub> x SUM(w<sub>ij</sub> x KPI<sub>ij</sub>)]</p>
+    </div>
+
+    <!-- NPI Hero + Zone -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <!-- NPI Score -->
+        <div class="bg-slate-800 rounded-lg p-6 text-center">
+            <p class="text-sm text-slate-400 uppercase mb-2">Normalized Performance Index</p>
+            <p class="text-6xl font-bold {% if result.zone == 'GREEN' %}text-green-400{% elif result.zone == 'YELLOW' %}text-yellow-400{% else %}text-red-400{% endif %}">
+                {{ result.npi_score }}%
+            </p>
+        </div>
+        <!-- Zone Card -->
+        <div class="rounded-lg p-6 text-center {% if result.zone == 'GREEN' %}bg-green-900/30 border border-green-600/50{% elif result.zone == 'YELLOW' %}bg-yellow-900/30 border border-yellow-600/50{% else %}bg-red-900/30 border border-red-600/50{% endif %}">
+            <p class="text-sm text-slate-400 uppercase mb-2">Zone Classification</p>
+            <p class="text-5xl font-bold {% if result.zone == 'GREEN' %}text-green-400{% elif result.zone == 'YELLOW' %}text-yellow-400{% else %}text-red-400{% endif %}">
+                {{ result.zone }}
+            </p>
+            <div class="mt-4 flex items-center justify-center gap-1">
+                <div class="h-3 w-16 rounded-l bg-red-600 {% if result.zone == 'RED' %}ring-2 ring-white{% endif %}"></div>
+                <div class="h-3 w-16 bg-yellow-500 {% if result.zone == 'YELLOW' %}ring-2 ring-white{% endif %}"></div>
+                <div class="h-3 w-16 rounded-r bg-green-500 {% if result.zone == 'GREEN' %}ring-2 ring-white{% endif %}"></div>
+            </div>
+            <p class="text-xs text-slate-500 mt-2">RED < {{ result.red_floor }}% | GREEN > {{ result.green_target }}%</p>
+        </div>
+    </div>
+
+    <!-- Alpha Kill Switch Alerts -->
+    {% if result.alpha_alerts %}
+    <div class="bg-red-900/20 border border-red-700/50 rounded-lg p-4 mb-6">
+        <h3 class="text-red-400 font-semibold text-sm uppercase mb-3">Alpha Kill Switch Active</h3>
+        {% for alert in result.alpha_alerts %}
+        <div class="flex items-start gap-3 mb-3 last:mb-0">
+            <span class="text-red-400 text-lg">&#9888;</span>
+            <div>
+                <p class="text-white font-medium">{{ alert.parameter }} (W<sub>i</sub> = {{ alert.W_i }}%)</p>
+                <p class="text-slate-300 text-sm">KPI "{{ alert.kpi_name }}" scored {{ alert.score }} against tau floor {{ alert.tau_floor }}. Parameter collapsed to RED. Impact: {{ alert.impact }}% of NPI zeroed.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Parameter Breakdown -->
+    <div class="bg-slate-800/40 rounded-lg overflow-hidden mb-6">
+        <h3 class="text-white font-semibold p-4 border-b border-slate-700">Parameter Breakdown</h3>
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="border-b border-slate-700">
+                    <th class="text-left p-3 text-slate-400 font-medium">Parameter</th>
+                    <th class="text-center p-3 text-slate-400 font-medium">W<sub>i</sub></th>
+                    <th class="text-center p-3 text-slate-400 font-medium">Alpha</th>
+                    <th class="text-center p-3 text-slate-400 font-medium">Composite Score</th>
+                    <th class="text-center p-3 text-slate-400 font-medium">Contribution</th>
+                    <th class="text-center p-3 text-slate-400 font-medium">Signal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pr in result.parameter_results %}
+                <tr class="border-b border-slate-700/30 {% if pr.signal == 'KILL' %}bg-red-900/20{% elif pr.signal == 'Low' %}bg-yellow-900/10{% endif %}">
+                    <td class="p-3 text-white font-medium">{{ pr.name }}</td>
+                    <td class="text-center p-3 text-slate-300">{{ pr.W_i }}%</td>
+                    <td class="text-center p-3">
+                        {% if pr.alpha == 0 %}
+                        <span class="text-red-400 font-bold">0 (KILL)</span>
+                        {% else %}
+                        <span class="text-green-400">1.0</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center p-3 text-slate-300">{{ pr.composite_score }}%</td>
+                    <td class="text-center p-3 text-cyan-300">{{ pr.contribution }}%</td>
+                    <td class="text-center p-3">
+                        {% if pr.signal == 'KILL' %}
+                        <span class="px-2 py-0.5 rounded text-xs bg-red-900/50 text-red-300 border border-red-700/50">KILL</span>
+                        {% elif pr.signal == 'Low' %}
+                        <span class="px-2 py-0.5 rounded text-xs bg-yellow-900/50 text-yellow-300">Low</span>
+                        {% else %}
+                        <span class="px-2 py-0.5 rounded text-xs bg-green-900/50 text-green-300">OK</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Prescriptions -->
+    {% if result.prescriptions %}
+    <div class="bg-slate-800/40 rounded-lg p-4 mb-6">
+        <h3 class="text-white font-semibold mb-3">AI-Generated Prescriptions</h3>
+        <div class="space-y-2">
+            {% for rx in result.prescriptions %}
+            <div class="flex items-start gap-3">
+                {% if rx.tier == 'CRITICAL' %}
+                <span class="px-2 py-0.5 rounded text-xs bg-red-900/50 text-red-300 border border-red-700/50 flex-shrink-0">CRITICAL</span>
+                {% else %}
+                <span class="px-2 py-0.5 rounded text-xs bg-yellow-900/50 text-yellow-300 flex-shrink-0">PREVENTIVE</span>
+                {% endif %}
+                <p class="text-slate-300 text-sm">{{ rx.text }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Computation Timestamp -->
+    <p class="text-xs text-slate-500 text-right">Computed: {{ discovery.status }} | Discovery ID: {{ discovery.id }}</p>
+
+    {% endif %}
+</div>
+{% endblock %}
