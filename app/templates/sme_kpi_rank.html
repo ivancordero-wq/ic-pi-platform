@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Rank KPIs{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 py-8">
+
+    <!-- Step Pill -->
+    <div class="flex items-center justify-between mb-6">
+        <span class="px-3 py-1 bg-cyan-900/50 text-cyan-300 text-xs font-semibold rounded-full">Step 3 of 4</span>
+        <span class="px-3 py-1 bg-slate-700 text-slate-400 text-xs rounded-full">Anonymous to peers</span>
+    </div>
+
+    <!-- Header -->
+    <h1 class="text-xl font-bold text-white mb-2">Rank These KPIs</h1>
+    <p class="text-slate-400 text-sm mb-1">
+        Parameter: <span class="text-cyan-300 font-medium">{{ parameter_name }}</span>
+    </p>
+    <p class="text-slate-400 text-sm mb-1">
+        Process: <span class="text-white">{{ process_name }}</span> &mdash; {{ client_name }}
+    </p>
+    <p class="text-slate-400 text-sm mb-6">
+        Assign a rank to each KPI based on its <strong class="text-cyan-300">relative importance</strong> to measuring this parameter.
+        <br><span class="text-xs text-slate-500">1 = most important, {{ kpi_count }} = least important. Each number can only be used once.</span>
+    </p>
+
+    {% if current_round > 1 %}
+    <!-- Delphi context for re-rank rounds -->
+    <div class="bg-slate-800/60 border border-cyan-700/40 rounded-lg p-4 mb-6">
+        <h3 class="text-sm font-semibold text-cyan-300 mb-2">Round {{ current_round }}: Peer Distribution (Anonymous)</h3>
+        <p class="text-xs text-slate-400 mb-2">Below you can see how your peers ranked these KPIs last round. Only divergent KPIs are shown for re-ranking.</p>
+    </div>
+    {% endif %}
+
+    <!-- Ranking Form -->
+    <form method="POST" action="/sme/rank-kpi/{{ token }}" id="rankForm">
+        <div class="space-y-3">
+            {% for kpi in kpis %}
+            <div class="flex items-center gap-4 bg-slate-800/40 rounded-lg p-4 border border-slate-700/50">
+                <div class="flex-shrink-0">
+                    <input type="number"
+                           name="rank_{{ kpi.id }}"
+                           min="1"
+                           max="{{ kpi_count }}"
+                           required
+                           class="w-14 h-10 text-center bg-slate-900 border border-slate-600 rounded text-white font-bold text-lg focus:border-cyan-400 focus:outline-none"
+                           placeholder="#">
+                </div>
+                <div class="flex-1">
+                    <p class="text-white font-medium text-sm">{{ kpi.name }}</p>
+                    {% if kpi.description %}
+                    <p class="text-slate-400 text-xs mt-0.5">{{ kpi.description }}</p>
+                    {% endif %}
+                    {% if current_round > 1 and kpi.prev_avg is not none %}
+                    <p class="text-xs text-cyan-400 mt-1">Previous round avg rank: {{ kpi.prev_avg }}</p>
+                    {% endif %}
+                </div>
+                <div class="flex-shrink-0">
+                    <span class="px-2 py-0.5 rounded text-xs {% if kpi.source == 'ai' %}bg-purple-900/50 text-purple-300{% elif kpi.source == 'regulation' %}bg-blue-900/50 text-blue-300{% else %}bg-slate-700 text-slate-300{% endif %}">
+                        {{ kpi.source }}
+                    </span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Validation message -->
+        <div id="validationMsg" class="hidden mt-4 p-3 bg-red-900/30 border border-red-700/50 rounded-lg text-red-300 text-sm"></div>
+
+        <!-- Submit -->
+        <div class="mt-6">
+            <button type="submit"
+                    class="w-full py-3 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold rounded-lg transition text-lg">
+                Submit KPI Rankings
+            </button>
+        </div>
+
+        <p class="text-xs text-slate-500 mt-3 text-center">Once submitted, you cannot go back and change your rankings for this round.</p>
+    </form>
+</div>
+
+<script>
+document.getElementById('rankForm').addEventListener('submit', function(e) {
+    var inputs = this.querySelectorAll('input[type="number"]');
+    var values = [];
+    var max = {{ kpi_count }};
+
+    for (var i = 0; i < inputs.length; i++) {
+        var val = parseInt(inputs[i].value);
+        if (isNaN(val) || val < 1 || val > max) {
+            e.preventDefault();
+            document.getElementById('validationMsg').textContent = 'Each rank must be between 1 and ' + max + '.';
+            document.getElementById('validationMsg').classList.remove('hidden');
+            return;
+        }
+        if (values.indexOf(val) !== -1) {
+            e.preventDefault();
+            document.getElementById('validationMsg').textContent = 'Each rank number can only be used once. You have a duplicate: ' + val;
+            document.getElementById('validationMsg').classList.remove('hidden');
+            return;
+        }
+        values.push(val);
+    }
+});
+</script>
+{% endblock %}
