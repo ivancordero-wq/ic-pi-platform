@@ -63,6 +63,7 @@
                             <th class="text-center p-2 text-slate-400 font-medium">w<sub>ij</sub></th>
                             <th class="text-center p-2 text-slate-400 font-medium w-24">Floor (tau)</th>
                             <th class="text-left p-2 text-slate-400 font-medium">Designated By</th>
+                            <th class="text-center p-2 text-slate-400 font-medium">Direction</th>
                             <th class="text-left p-2 text-slate-400 font-medium">Rationale</th>
                         </tr>
                     </thead>
@@ -99,6 +100,13 @@
                                        value="{% if kpi.tau_designated_by %}{{ kpi.tau_designated_by }}{% endif %}"
                                        placeholder="e.g. CFO, VP Ops"
                                        class="w-full h-8 px-2 bg-slate-900 border border-slate-600 rounded text-white text-sm focus:border-red-400 focus:outline-none">
+                            </td>
+                            <td class="p-2">
+                                <select name="direction_{{ kpi.id }}"
+                                        class="w-full h-8 px-1 bg-slate-900 border border-slate-600 rounded text-white text-xs focus:border-red-400 focus:outline-none">
+                                    <option value="higher_is_better" {% if kpi.tau_direction == 'higher_is_better' %}selected{% endif %}>Higher = Better</option>
+                                    <option value="lower_is_better" {% if kpi.tau_direction == 'lower_is_better' %}selected{% endif %}>Lower = Better</option>
+                                </select>
                             </td>
                             <td class="p-2">
                                 <input type="text"
