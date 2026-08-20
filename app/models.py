@@ -284,3 +284,19 @@ class KPIWeightLocked(Base):
 
     kpi = relationship("KPI", backref="locked_weight")
     parameter = relationship("Parameter", backref="locked_kpi_weights")
+
+class TauDesignation(Base):
+    __tablename__ = "tau_designations"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    kpi_id = Column(UUID(as_uuid=True), ForeignKey("kpis.id"), nullable=False, unique=True)
+    parameter_id = Column(UUID(as_uuid=True), ForeignKey("parameters.id"), nullable=False)
+    process_id = Column(UUID(as_uuid=True), ForeignKey("processes.id"), nullable=False)
+    tau_floor = Column(Float, nullable=False)
+    rationale = Column(String(500), nullable=True)
+    designated_by = Column(String(100), default="leadership")
+    designated_at = Column(DateTime, default=datetime.utcnow)
+
+    kpi = relationship("KPI", backref="tau_designation")
+    parameter = relationship("Parameter", backref="tau_designations")
+    process = relationship("Process", backref="tau_designations")
