@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}Tau Designation: Trip Wire Floors{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-8">
+
+    <!-- Header -->
+    <div class="mb-6">
+        <div class="flex items-center gap-3 mb-2">
+            <span class="text-3xl font-bold text-red-400">&tau;</span>
+            <h1 class="text-2xl font-bold text-white">Trip Wire Designation</h1>
+        </div>
+        <p class="text-slate-400">{{ discovery.name }}</p>
+        <p class="text-xs text-slate-500 mt-1">Designate critical KPIs and set minimum acceptable floors. If a KPI drops below its floor at run-time, the kill switch (alpha) fires.</p>
+    </div>
+
+    <!-- Rules Callout -->
+    <div class="bg-slate-800/60 border border-red-700/40 rounded-lg p-4 mb-6">
+        <h3 class="text-sm font-semibold text-red-300 uppercase tracking-wide mb-2">Trip Wire Rules</h3>
+        <ol class="text-sm text-slate-300 space-y-1 list-decimal list-inside">
+            <li>Not every KPI gets a trip wire. Only truly critical ones.</li>
+            <li>Leadership decides which KPIs are critical. Not iterative. Not Delphi.</li>
+            <li>Regulatory KPIs: floor is imposed externally (compliance minimum).</li>
+            <li>Operational KPIs: SMEs propose, leadership validates.</li>
+            <li>If KPI score drops below tau at run-time, alpha fires: parameter collapses to RED.</li>
+            <li>Non-compensatory: no amount of good performance elsewhere offsets a trip wire breach.</li>
+        </ol>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="grid grid-cols-3 gap-3 mb-6">
+        <div class="bg-slate-800 rounded-lg p-3 text-center">
+            <p class="text-xs text-slate-400 uppercase">Total KPIs</p>
+            <p class="text-xl font-bold text-white">{{ total_kpis }}</p>
+        </div>
+        <div class="bg-slate-800 rounded-lg p-3 text-center">
+            <p class="text-xs text-slate-400 uppercase">Trip Wires Set</p>
+            <p class="text-xl font-bold text-red-400">{{ total_designated }}</p>
+        </div>
+        <div class="bg-slate-800 rounded-lg p-3 text-center">
+            <p class="text-xs text-slate-400 uppercase">Non-Critical</p>
+            <p class="text-xl font-bold text-slate-500">{{ total_kpis - total_designated }}</p>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <form method="POST" action="/discovery/{{ discovery.id }}/tau-designation">
+
+        {% for block in param_data %}
+        <div class="mb-6">
+            <div class="flex items-center gap-3 mb-3">
+                <h3 class="text-white font-semibold">{{ block.param_name }}</h3>
+                <span class="text-xs text-cyan-400">W<sub>i</sub> = {{ block.w_i }}%</span>
+            </div>
+
+            <div class="bg-slate-800/40 rounded-lg overflow-hidden">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-slate-700">
+                            <th class="text-center p-2 text-slate-400 font-medium w-16">Critical?</th>
+                            <th class="text-left p-2 text-slate-400 font-medium">KPI</th>
+                            <th class="text-center p-2 text-slate-400 font-medium">w<sub>ij</sub></th>
+                            <th class="text-center p-2 text-slate-400 font-medium w-24">Floor (tau)</th>
+                            <th class="text-left p-2 text-slate-400 font-medium">Designated By</th>
+                            <th class="text-left p-2 text-slate-400 font-medium">Rationale</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for kpi in block.kpis %}
+                        <tr class="border-b border-slate-700/30 {% if kpi.has_tau %}bg-red-900/10{% endif %}">
+                            <td class="text-center p-2">
+                                <input type="checkbox"
+                                       name="critical_{{ kpi.id }}"
+                                       value="1"
+                                       {% if kpi.has_tau %}checked{% endif %}
+                                       class="w-4 h-4 accent-red-500">
+                            </td>
+                            <td class="p-2">
+                                <p class="text-white text-sm">{{ kpi.name }}</p>
+                                {% if kpi.description %}
+                                <p class="text-slate-500 text-xs">{{ kpi.description }}</p>
+                                {% endif %}
+                            </td>
+                            <td class="text-center p-2 text-cyan-300 text-sm">
+                                {% if kpi.w_ij %}{{ kpi.w_ij }}%{% else %}&mdash;{% endif %}
+                            </td>
+                            <td class="text-center p-2">
+                                <input type="number"
+                                       name="tau_{{ kpi.id }}"
+                                       step="0.01"
+                                       min="0"
+                                       max="100"
+                                       value="{% if kpi.tau_floor is not none %}{{ kpi.tau_floor }}{% endif %}"
+                                       placeholder="0-100"
+                                       class="w-20 h-8 text-center bg-slate-900 border border-slate-600 rounded text-white text-sm focus:border-red-400 focus:outline-none">
+                            </td>
+                            <td class="p-2">
+                                <input type="text"
+                                       name="designated_by_{{ kpi.id }}"
+                                       value="{% if kpi.tau_designated_by %}{{ kpi.tau_designated_by }}{% endif %}"
+                                       placeholder="e.g. CFO, VP Ops"
+                                       class="w-full h-8 px-2 bg-slate-900 border border-slate-600 rounded text-white text-sm focus:border-red-400 focus:outline-none">
+                            </td>
+                            <td class="p-2">
+                                <input type="text"
+                                       name="rationale_{{ kpi.id }}"
+                                       value="{% if kpi.tau_rationale %}{{ kpi.tau_rationale }}{% endif %}"
+                                       placeholder="e.g. Regulatory minimum"
+                                       class="w-full h-8 px-2 bg-slate-900 border border-slate-600 rounded text-white text-sm focus:border-red-400 focus:outline-none">
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endfor %}
+
+        <!-- CTA -->
+        <div class="flex justify-end mt-6">
+            <button type="submit"
+                    class="px-6 py-2.5 bg-red-600 hover:bg-red-500 text-white font-semibold rounded-lg transition">
+                Save Trip Wire Designations & Proceed
+            </button>
+        </div>
+    </form>
+
+</div>
+{% endblock %}
