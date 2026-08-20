@@ -126,6 +126,10 @@
                 <!-- Per-parameter CTAs -->
                 {% if block.theta_l2.status != "locked" %}
                 <div class="flex gap-3 justify-end mt-3">
+                    <a href="/sme/generate-kpi-ranking-links/{{ discovery.id }}/{{ block.param_id }}"
+                       class="px-4 py-1.5 bg-slate-600 hover:bg-slate-500 text-white text-sm font-semibold rounded-lg transition inline-block">
+                        Generate SME Links
+                    </a>
                     {% if block.theta_l2.current_round < 3 %}
                     <form method="POST" action="/discovery/{{ discovery.id }}/kpi-weighting/{{ block.param_id }}/trigger-round">
                         <button type="submit" class="px-4 py-1.5 bg-yellow-600 hover:bg-yellow-500 text-white text-sm font-semibold rounded-lg transition">
