@@ -301,3 +301,14 @@ class TauDesignation(Base):
     kpi = relationship("KPI", backref="tau_designation_v2")
     parameter = relationship("Parameter", backref="tau_designations_v2")
     process = relationship("Process", backref="tau_designations_v2")
+
+class KPIAnchor(Base):
+    __tablename__ = "kpi_anchors"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    kpi_id = Column(UUID(as_uuid=True), ForeignKey("kpis.id"), nullable=False, unique=True)
+    best_value = Column(Float, nullable=False)
+    worst_value = Column(Float, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    kpi = relationship("KPI", backref="anchor")
