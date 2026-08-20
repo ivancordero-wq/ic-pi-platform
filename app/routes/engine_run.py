@@ -17,7 +17,7 @@ import json
 from app.database import SessionLocal
 from app.models import (
     Discovery, Process, Parameter, KPI, KPIScore,
-    ParameterWeight, KPIWeightLocked, TauDesignation, EngineResult
+    ParameterWeight, KPIWeightLocked, TauDesignation, EngineResult, KPIAnchor
 )
 from app.auth import decode_access_token
 
@@ -77,15 +77,32 @@ def compute_npi(process_id, db):
                 ).first()
 
                 if score_record:
-                    direction = tau.direction if hasattr(tau, 'direction') and tau.direction else "higher_is_better"
-                    if direction == "lower_is_better":
-                        if score_record.score > tau.tau_floor:
+                    # Use anchors to normalize tau_floor to 0-100 scale
+                    anchor = db.query(KPIAnchor).filter(
+                        KPIAnchor.kpi_id == kpi.id
+                    ).first()
+
+                    if anchor and anchor.best_value != anchor.worst_value:
+                        tau_normalized = (tau.tau_floor - anchor.worst_value) / (anchor.best_value - anchor.worst_value) * 100.0
+                        tau_normalized = max(0.0, min(100.0, tau_normalized))
+                        # Breach = normalized score below normalized tau
+                        if score_record.score < tau_normalized:
+                            alpha_i = 0.0
+                            breached_kpi = {
+                                "kpi_name": kpi.name,
+                                "score": round(score_record.score, 1),
+                                "tau_floor": round(tau_normalized, 1),
+                                "raw_tau": tau.tau_floor,
+                            }
+                    else:
+                        # No anchors: direct comparison (legacy fallback)
+                        if score_record.score < tau.tau_floor:
                             alpha_i = 0.0
                             breached_kpi = {
                                 "kpi_name": kpi.name,
                                 "score": score_record.score,
                                 "tau_floor": tau.tau_floor,
-                                "direction": direction,
+                                "raw_tau": tau.tau_floor,
                             }
                     else:
                         if score_record.score < tau.tau_floor:
@@ -164,7 +181,7 @@ def compute_npi(process_id, db):
                 "kpi_name": breached_kpi["kpi_name"],
                 "score": breached_kpi["score"],
                 "tau_floor": breached_kpi["tau_floor"],
-                "direction": breached_kpi["direction"],
+                "raw_tau": breached_kpi.get("raw_tau", breached_kpi["tau_floor"]),
                 "impact": round(W_i * 100, 1),
             })
 
