@@ -92,12 +92,18 @@ async def kpi_scoring_view(request: Request, discovery_id: str):
                 if is_scored:
                     scored_count += 1
 
-                # Check tau breach
+                # Check tau breach (respects direction)
                 below_tau = False
                 if tau and score_value is not None:
-                    if score_value < tau.tau_floor:
-                        below_tau = True
-                        below_tau_count += 1
+                    direction = tau.direction if hasattr(tau, 'direction') else "higher_is_better"
+                    if direction == "lower_is_better":
+                        if score_value > tau.tau_floor:
+                            below_tau = True
+                            below_tau_count += 1
+                    else:
+                        if score_value < tau.tau_floor:
+                            below_tau = True
+                            below_tau_count += 1
 
                 kpi_list.append({
                     "id": str(kpi.id),
