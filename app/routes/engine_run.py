@@ -37,10 +37,9 @@ def compute_npi(process_id, db):
     """
     Compute the full NPI formula:
     NPI = SUM(W_i * alpha_i * SUM(w_ij * KPI_ij))
-    
+
     Returns dict with NPI score, zone, parameter breakdown, alpha alerts.
     """
-    # Get locked parameter weights
     param_weights = db.query(ParameterWeight).filter(
         ParameterWeight.process_id == process_id
     ).all()
@@ -58,10 +57,9 @@ def compute_npi(process_id, db):
         param = db.query(Parameter).filter(Parameter.id == pw.parameter_id).first()
         W_i = pw.weight_normalized
 
-        # Get KPIs for this parameter
         kpis = db.query(KPI).filter(KPI.parameter_id == param.id).all()
 
-        # Check alpha (tau breach)
+        # Check alpha (tau breach using normalized comparison)
         alpha_i = 1.0
         breached_kpi = None
 
@@ -77,12 +75,12 @@ def compute_npi(process_id, db):
                 ).first()
 
                 if score_record:
-                    # Use anchors to normalize tau_floor to 0-100 scale
                     anchor = db.query(KPIAnchor).filter(
                         KPIAnchor.kpi_id == kpi.id
                     ).first()
 
                     if anchor and anchor.best_value != anchor.worst_value:
+                        # Normalize tau_floor to 0-100 scale using same anchors
                         tau_normalized = (tau.tau_floor - anchor.worst_value) / (anchor.best_value - anchor.worst_value) * 100.0
                         tau_normalized = max(0.0, min(100.0, tau_normalized))
                         # Breach = normalized score below normalized tau
@@ -104,29 +102,17 @@ def compute_npi(process_id, db):
                                 "tau_floor": tau.tau_floor,
                                 "raw_tau": tau.tau_floor,
                             }
-                    else:
-                        if score_record.score < tau.tau_floor:
-                            alpha_i = 0.0
-                            breached_kpi = {
-                                "kpi_name": kpi.name,
-                                "score": score_record.score,
-                                "tau_floor": tau.tau_floor,
-                                "direction": direction,
-                            }
 
         # Compute parameter composite: SUM(w_ij * KPI_ij)
         inner_sum = 0.0
         kpi_details = []
-        has_all_scores = True
 
         for kpi in kpis:
-            # Get w_ij
             kpi_weight = db.query(KPIWeightLocked).filter(
                 KPIWeightLocked.kpi_id == kpi.id
             ).first()
             w_ij = kpi_weight.weight_normalized if kpi_weight else 0.0
 
-            # Get score
             score_record = db.query(KPIScore).filter(
                 KPIScore.kpi_id == kpi.id,
                 KPIScore.measurement_label == "discovery_baseline"
@@ -143,7 +129,6 @@ def compute_npi(process_id, db):
                     "contribution": round(contribution * 100, 2),
                 })
             else:
-                has_all_scores = False
                 kpi_details.append({
                     "name": kpi.name,
                     "w_ij": round(w_ij * 100, 1) if w_ij else 0,
@@ -206,7 +191,7 @@ def compute_npi(process_id, db):
     for alert in alpha_alerts:
         prescriptions.append({
             "tier": "CRITICAL",
-            "text": f"Immediate remediation for '{alert['kpi_name']}' in {alert['parameter']} (score: {alert['score']}, below survival threshold {alert['tau_floor']}). Alpha kill switch active.",
+            "text": f"Immediate remediation for '{alert['kpi_name']}' in {alert['parameter']} (normalized score: {alert['score']}%, below threshold {alert['tau_floor']}%). Alpha kill switch active.",
         })
 
     for pr in parameter_results:
@@ -243,7 +228,6 @@ async def engine_run_view(request: Request, discovery_id: str):
         if not process:
             return RedirectResponse(url="/dashboard", status_code=302)
 
-        # Compute NPI
         result = compute_npi(str(process.id), db)
 
         if not result:
