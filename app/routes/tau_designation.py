@@ -91,6 +91,7 @@ async def tau_designation_view(request: Request, discovery_id: str):
                     "tau_floor": tau.tau_floor if tau else None,
                     "tau_rationale": tau.rationale if tau else None,
                     "tau_designated_by": tau.designated_by if tau else None,
+                     "tau_direction": tau.direction if tau else "higher_is_better",
                 })
                 total_kpis += 1
 
@@ -155,6 +156,7 @@ async def save_tau_designations(request: Request, discovery_id: str):
                         existing.rationale = rationale or None
                         existing.designated_by = designated_by or "leadership"
                         existing.designated_at = datetime.utcnow()
+                        existing.direction = form_data.get(f"direction_{kpi_id}") or "higher_is_better"
                     else:
                         tau = TauDesignation(
                             kpi_id=kpi_id,
@@ -163,6 +165,7 @@ async def save_tau_designations(request: Request, discovery_id: str):
                             tau_floor=tau_float,
                             rationale=rationale or None,
                             designated_by=designated_by or "leadership",
+                            direction=form_data.get(f"direction_{kpi_id}") or "higher_is_better",
                         )
                         db.add(tau)
                 else:
