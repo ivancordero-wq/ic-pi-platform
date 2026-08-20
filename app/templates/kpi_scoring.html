@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}KPI Scoring{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-8">
+
+    <!-- Header -->
+    <div class="mb-6">
+        <div class="flex items-center gap-3 mb-2">
+            <span class="text-3xl font-bold text-yellow-400">&#9889;</span>
+            <h1 class="text-2xl font-bold text-white">KPI Scoring</h1>
+        </div>
+        <p class="text-slate-400">{{ discovery.name }}</p>
+        <p class="text-xs text-slate-500 mt-1">Enter actual operational measurements for each KPI. The floor value (tau) is the REAL operational measurement. If a score drops below tau, the kill switch (alpha) fires.</p>
+    </div>
+
+    <!-- Rules Callout -->
+    <div class="bg-slate-800/60 border border-yellow-700/40 rounded-lg p-4 mb-6">
+        <h3 class="text-sm font-semibold text-yellow-300 uppercase tracking-wide mb-2">Scoring Rules</h3>
+        <ol class="text-sm text-slate-300 space-y-1 list-decimal list-inside">
+            <li>Evidence-based only. Every score traces to a verifiable source.</li>
+            <li>Client provides data. Consultant facilitates but does not invent numbers.</li>
+            <li>Scores use the same unit as the KPI definition (%, hours, count, any unit).</li>
+            <li>Critical KPIs show tau floor as reference. Below tau = alpha will fire.</li>
+            <li>All KPIs must be scored before engine can run. Partial saves allowed.</li>
+        </ol>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="grid grid-cols-3 gap-3 mb-6">
+        <div class="bg-slate-800 rounded-lg p-3 text-center">
+            <p class="text-xs text-slate-400 uppercase">Total KPIs</p>
+            <p class="text-xl font-bold text-white">{{ total_kpis }}</p>
+        </div>
+        <div class="bg-slate-800 rounded-lg p-3 text-center">
+            <p class="text-xs text-slate-400 uppercase">Scored</p>
+            <p class="text-xl font-bold text-green-400">{{ scored_count }}</p>
+        </div>
+        <div class="bg-slate-800 rounded-lg p-3 text-center">
+            <p class="text-xs text-slate-400 uppercase">Below Tau (Breach)</p>
+            <p class="text-xl font-bold {% if below_tau_count > 0 %}text-red-400{% else %}text-slate-500{% endif %}">{{ below_tau_count }}</p>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <form method="POST" action="/discovery/{{ discovery.id }}/kpi-scoring">
+
+        {% for block in param_data %}
+        <div class="mb-6">
+            <div class="flex items-center gap-3 mb-3">
+                <h3 class="text-white font-semibold">{{ block.param_name }}</h3>
+                <span class="text-xs text-cyan-400">W<sub>i</sub> = {{ block.w_i }}%</span>
+            </div>
+
+            <div class="bg-slate-800/40 rounded-lg overflow-hidden">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-slate-700">
+                            <th class="text-left p-2 text-slate-400 font-medium">KPI</th>
+                            <th class="text-center p-2 text-slate-400 font-medium">w<sub>ij</sub></th>
+                            <th class="text-center p-2 text-slate-400 font-medium">Tau Floor</th>
+                            <th class="text-center p-2 text-slate-400 font-medium w-28">Score</th>
+                            <th class="text-left p-2 text-slate-400 font-medium">Evidence / Source</th>
+                            <th class="text-center p-2 text-slate-400 font-medium">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for kpi in block.kpis %}
+                        <tr class="border-b border-slate-700/30 {% if kpi.below_tau %}bg-red-900/20{% endif %}">
+                            <td class="p-2">
+                                <p class="text-white text-sm">{{ kpi.name }}</p>
+                                {% if kpi.description %}
+                                <p class="text-slate-500 text-xs">{{ kpi.description }}</p>
+                                {% endif %}
+                            </td>
+                            <td class="text-center p-2 text-cyan-300 text-sm">
+                                {% if kpi.w_ij %}{{ kpi.w_ij }}%{% else %}&mdash;{% endif %}
+                            </td>
+                            <td class="text-center p-2">
+                                {% if kpi.has_tau %}
+                                <span class="text-red-300 font-medium text-sm">{{ kpi.tau_floor }}</span>
+                                {% else %}
+                                <span class="text-slate-500 text-xs">&mdash;</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center p-2">
+                                <input type="number"
+                                       name="score_{{ kpi.id }}"
+                                       step="0.01"
+                                       value="{% if kpi.score is not none %}{{ kpi.score }}{% endif %}"
+                                       placeholder="value"
+                                       class="w-24 h-8 text-center bg-slate-900 border {% if kpi.below_tau %}border-red-500{% else %}border-slate-600{% endif %} rounded text-white text-sm focus:border-yellow-400 focus:outline-none">
+                            </td>
+                            <td class="p-2">
+                                <input type="text"
+                                       name="evidence_{{ kpi.id }}"
+                                       value="{{ kpi.evidence }}"
+                                       placeholder="e.g. Q2 report, system extract"
+                                       class="w-full h-8 px-2 bg-slate-900 border border-slate-600 rounded text-white text-sm focus:border-yellow-400 focus:outline-none">
+                            </td>
+                            <td class="text-center p-2">
+                                {% if kpi.below_tau %}
+                                <span class="px-2 py-0.5 rounded text-xs bg-red-900/50 text-red-300 border border-red-700/50">BREACH</span>
+                                {% elif kpi.is_scored %}
+                                <span class="px-2 py-0.5 rounded text-xs bg-green-900/50 text-green-300">Scored</span>
+                                {% else %}
+                                <span class="px-2 py-0.5 rounded text-xs bg-slate-700 text-slate-400">Missing</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endfor %}
+
+        <!-- CTAs -->
+        <div class="flex gap-4 justify-end mt-6">
+            <button type="submit"
+                    class="px-6 py-2.5 bg-yellow-600 hover:bg-yellow-500 text-white font-semibold rounded-lg transition">
+                Save Progress
+            </button>
+            {% if all_scored %}
+            <a href="/discovery/{{ discovery.id }}/engine-run"
+               class="px-6 py-2.5 bg-green-600 hover:bg-green-500 text-white font-semibold rounded-lg transition inline-block">
+                Run Engine &rarr;
+            </a>
+            {% endif %}
+        </div>
+    </form>
+
+</div>
+{% endblock %}
