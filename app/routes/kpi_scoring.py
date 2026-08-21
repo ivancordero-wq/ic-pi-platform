@@ -106,9 +106,11 @@ async def kpi_scoring_view(request: Request, discovery_id: str):
                 if existing_score:
                     normalized_score = existing_score.score
                     evidence = existing_score.evidence_note or ""
-                    # Try to parse actual from evidence (stored as first token)
                     try:
-                        actual_value = float(evidence.split("|")[0].strip()) if "|" in evidence else None
+                        if "|" in evidence:
+                            actual_value = float(evidence.split("|")[0].strip())
+                        else:
+                            actual_value = float(evidence.strip()) if evidence.strip() else None
                     except (ValueError, IndexError):
                         actual_value = None
 
