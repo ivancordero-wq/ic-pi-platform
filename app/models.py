@@ -5,7 +5,7 @@ IC-pi Platform: Database Models (Phase 1)
 
 from sqlalchemy import (
     Column, String, Float, Boolean, Integer, DateTime,
-    ForeignKey, Text, UniqueConstraint
+    ForeignKey, Text, UniqueConstraint, func
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
