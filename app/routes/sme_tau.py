@@ -17,7 +17,7 @@ def generate_tau_link(sme_id: str, discovery_id: str, base_url: str) -> str:
     """Generate a magic link for SME tau floor proposal."""
     import jwt as pyjwt
     token = pyjwt.encode(
-        {"sme_id": sme_id, "discovery_id": discovery_id, "type": "sme_tau_link"},
+        {"sme_id": str(sme_id), "discovery_id": str(discovery_id), "type": "sme_tau_link"},
         SME_TAU_SECRET,
         algorithm="HS256"
     )
@@ -202,7 +202,7 @@ async def generate_tau_links(request: Request, discovery_id: str):
         base_url = str(request.base_url).rstrip("/")
         links = []
         for sme in smes:
-            link = generate_tau_link(sme.id, discovery_id, base_url)
+            link = generate_tau_link(str(sme.id), str(discovery_id), base_url)
             links.append({"name": sme.name, "email": sme.email, "link": link})
     finally:
         db.close()
