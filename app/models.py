@@ -312,3 +312,16 @@ class KPIAnchor(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     kpi = relationship("KPI", backref="anchor")
+
+class SmeTauProposal(Base):
+    __tablename__ = "sme_tau_proposals"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    discovery_id = Column(String, nullable=False)
+    process_id = Column(String, nullable=False)
+    kpi_id = Column(String, nullable=False)
+    sme_id = Column(String, nullable=False)
+    proposed_floor = Column(Float, nullable=False)
+    source_type = Column(String, nullable=False)  # "regulatory", "contractual", "operational"
+    justification = Column(String, nullable=True)
+    created_at = Column(DateTime, default=func.now())
