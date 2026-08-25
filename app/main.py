@@ -36,6 +36,7 @@ from app.routes.sme_kpi_ranking import router as sme_kpi_ranking_router
 from app.routes.tau_designation import router as tau_designation_router
 from app.routes.kpi_scoring import router as kpi_scoring_router
 from app.routes.engine_run import router as engine_run_router
+from app.routes.sme_tau import sme_tau_router
 
 # ---------------------------------------------------------------------------
 # Create database tables on startup (dev convenience; use Alembic for prod)
@@ -84,6 +85,7 @@ app.include_router(sme_kpi_ranking_router)
 app.include_router(tau_designation_router)
 app.include_router(kpi_scoring_router)
 app.include_router(engine_run_router)
+app.include_router(sme_tau_router)
 
 # API routes
 app.include_router(clients.router, prefix="/clients", tags=["Clients"])
