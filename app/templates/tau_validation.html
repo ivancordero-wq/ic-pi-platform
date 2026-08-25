@@ -19,11 +19,11 @@
     <!-- Context -->
     <div class="bg-gray-800 border border-gray-700 rounded-lg p-4 mb-8">
         <p class="text-gray-300 text-sm">
-            SMEs have proposed floor values for each critical KPI. Review the proposals below.
-            You may <strong class="text-white">accept the median</strong>, 
-            <strong class="text-white">override with a custom value</strong>, or 
-            <strong class="text-white">keep the original designation</strong>.
-            Once confirmed, τ floors are locked and the α kill switch is armed.
+            The designated authority SME has proposed a floor value for each critical KPI. Review below.
+        You may <strong class="text-white">accept the proposed floor</strong>, 
+        <strong class="text-white">override with a custom value</strong>, or 
+        <strong class="text-white">keep the original designation</strong>.
+        Once confirmed, τ floors are locked and the α kill switch is armed.
         </p>
     </div>
 
@@ -32,8 +32,8 @@
     <div class="bg-yellow-900/30 border border-yellow-700 rounded-lg p-6 text-center">
         <p class="text-yellow-300 font-semibold mb-2">No SME proposals received yet</p>
         <p class="text-gray-400 text-sm">
-            Generate magic links and send them to SMEs first. Once they submit floor proposals, 
-            you'll see their data here for validation.
+            Generate magic links for the assigned SMEs. Once they submit their floor proposals, 
+            you'll see each value here for leadership validation.
         </p>
         <a href="/discovery/{{ discovery.id }}/generate-tau-links"
            class="inline-block mt-4 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold px-4 py-2 rounded-lg transition">
