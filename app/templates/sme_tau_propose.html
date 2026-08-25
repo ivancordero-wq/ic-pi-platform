@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}IC-π™ — Floor Proposal{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto py-10 px-4">
+
+    <!-- Step pill -->
+    <div class="flex items-center gap-3 mb-6">
+        <span class="bg-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full">Step 4 of 4</span>
+        <span class="bg-gray-700 text-gray-300 text-xs px-3 py-1 rounded-full">🔒 Anonymous to peers</span>
+    </div>
+
+    <!-- Header -->
+    <h1 class="text-2xl font-bold text-white mb-2">Trip Wire Floor Proposal</h1>
+    <p class="text-gray-400 mb-6">
+        For <span class="text-white font-semibold">{{ process_name }}</span>
+        {% if client_name %} at <span class="text-white font-semibold">{{ client_name }}</span>{% endif %}
+    </p>
+
+    <!-- Context -->
+    <div class="bg-gray-800 border border-gray-700 rounded-lg p-4 mb-8">
+        <p class="text-gray-300 text-sm">
+            Leadership has designated the KPIs below as <strong class="text-red-400">critical</strong>. 
+            For each one, propose the minimum acceptable floor value based on your operational experience. 
+            If performance drops below this floor, the system triggers an automatic alert.
+        </p>
+        <p class="text-gray-400 text-xs mt-2">
+            Your proposals will be reviewed and validated by leadership before activation.
+        </p>
+    </div>
+
+    <!-- Form -->
+    <form action="/sme/tau/submit" method="POST" class="space-y-6">
+        <input type="hidden" name="token" value="{{ token }}">
+
+        {% for kpi in critical_kpis %}
+        <div class="bg-gray-800 border border-gray-700 rounded-lg p-5">
+            <!-- KPI header -->
+            <div class="mb-3">
+                <span class="text-xs text-indigo-400 font-medium">{{ kpi.parameter_name }}</span>
+                <h3 class="text-white font-semibold text-lg">{{ kpi.kpi_name }}</h3>
+                <span class="text-xs text-gray-500">
+                    Direction: 
+                    {% if kpi.direction == "higher_is_better" %}
+                        📈 Higher is better (floor = minimum acceptable)
+                    {% else %}
+                        📉 Lower is better (floor = maximum acceptable)
+                    {% endif %}
+                </span>
+            </div>
+
+            <!-- Floor value -->
+            <div class="mb-3">
+                <label class="block text-sm text-gray-400 mb-1" for="floor_{{ kpi.kpi_id }}">
+                    Proposed Floor Value <span class="text-red-400">*</span>
+                </label>
+                <input type="number" step="any" name="floor_{{ kpi.kpi_id }}" id="floor_{{ kpi.kpi_id }}"
+                       required
+                       class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
+                       placeholder="e.g. 95.0">
+            </div>
+
+            <!-- Source type -->
+            <div class="mb-3">
+                <label class="block text-sm text-gray-400 mb-1" for="source_{{ kpi.kpi_id }}">
+                    Source <span class="text-red-400">*</span>
+                </label>
+                <select name="source_{{ kpi.kpi_id }}" id="source_{{ kpi.kpi_id }}" required
+                        class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white focus:border-indigo-500 focus:outline-none">
+                    <option value="operational">Operational Experience</option>
+                    <option value="regulatory">Regulatory Requirement</option>
+                    <option value="contractual">Contractual Obligation</option>
+                </select>
+            </div>
+
+            <!-- Justification -->
+            <div>
+                <label class="block text-sm text-gray-400 mb-1" for="justification_{{ kpi.kpi_id }}">
+                    Brief Justification (optional)
+                </label>
+                <textarea name="justification_{{ kpi.kpi_id }}" id="justification_{{ kpi.kpi_id }}" rows="2"
+                          class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
+                          placeholder="Why this floor? What happens if breached?"></textarea>
+            </div>
+        </div>
+        {% endfor %}
+
+        <!-- Submit -->
+        <button type="submit"
+                class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition">
+            Submit Floor Proposals
+        </button>
+
+        <p class="text-gray-500 text-xs text-center mt-3">
+            ⚠️ You cannot return to this form after submission.
+        </p>
+    </form>
+</div>
+{% endblock %}
