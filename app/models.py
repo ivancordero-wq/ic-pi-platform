@@ -296,6 +296,7 @@ class TauDesignation(Base):
     direction = Column(String(20), default="higher_is_better")
     rationale = Column(String(500), nullable=True)
     designated_by = Column(String(100), default="leadership")
+    assigned_sme_id = Column(String, nullable=True)
     designated_at = Column(DateTime, default=datetime.utcnow)
 
     kpi = relationship("KPI", backref="tau_designation_v2")
