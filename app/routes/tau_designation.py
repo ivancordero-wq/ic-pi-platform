@@ -14,7 +14,7 @@ from datetime import datetime
 from app.database import SessionLocal
 from app.models import (
     Discovery, Process, Parameter, KPI,
-    ParameterWeight, KPIWeightLocked, TauDesignation, SmeTauProposal
+    ParameterWeight, KPIWeightLocked, TauDesignation, SmeTauProposal, SME
 )
 from app.auth import decode_access_token
 
@@ -101,7 +101,7 @@ async def tau_designation_view(request: Request, discovery_id: str):
                 "w_i": round(w_i * 100, 1),
                 "kpis": kpi_list,
             })
-
+        smes = db.query(SME).filter(SME.discovery_id == discovery_id).all()
         return templates.TemplateResponse("tau_designation.html", {
             "request": request,
             "discovery": discovery,
@@ -109,6 +109,7 @@ async def tau_designation_view(request: Request, discovery_id: str):
             "param_data": param_data,
             "total_kpis": total_kpis,
             "total_designated": total_designated,
+            "smes": smes,
         })
     finally:
         db.close()
@@ -157,6 +158,7 @@ async def save_tau_designations(request: Request, discovery_id: str):
                         existing.designated_by = designated_by or "leadership"
                         existing.designated_at = datetime.utcnow()
                         existing.direction = form_data.get(f"direction_{kpi_id}") or "higher_is_better"
+                        existing.assigned_sme_id = str(form_data.get(f"assigned_sme_{kpi_id}")) if form_data.get(f"assigned_sme_{kpi_id}") else None
                     else:
                         tau = TauDesignation(
                             kpi_id=kpi_id,
@@ -166,6 +168,7 @@ async def save_tau_designations(request: Request, discovery_id: str):
                             rationale=rationale or None,
                             designated_by=designated_by or "leadership",
                             direction=form_data.get(f"direction_{kpi_id}") or "higher_is_better",
+                            assigned_sme_id=str(form_data.get(f"assigned_sme_{kpi_id}")) if form_data.get(f"assigned_sme_{kpi_id}") else None,
                         )
                         db.add(tau)
                 else:
