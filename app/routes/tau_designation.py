@@ -14,7 +14,7 @@ from datetime import datetime
 from app.database import SessionLocal
 from app.models import (
     Discovery, Process, Parameter, KPI,
-    ParameterWeight, KPIWeightLocked, TauDesignation
+    ParameterWeight, KPIWeightLocked, TauDesignation, SmeTauProposal
 )
 from app.auth import decode_access_token
 
@@ -182,3 +182,119 @@ async def save_tau_designations(request: Request, discovery_id: str):
         )
     finally:
         db.close()
+
+@router.get("/discovery/{discovery_id}/tau-validation", response_class=HTMLResponse)
+async def tau_validation_view(request: Request, discovery_id: str):
+    """Phase 2: Show SME proposals for leadership validation."""
+    user = require_auth(request)
+    if not user:
+        return RedirectResponse(url="/", status_code=302)
+
+    db = SessionLocal()
+    try:
+        discovery = db.query(Discovery).filter(Discovery.id == discovery_id).first()
+        if not discovery:
+            return RedirectResponse(url="/dashboard", status_code=302)
+
+        process = db.query(Process).filter(Process.discovery_id == discovery.id).first()
+
+        # Get all tau designations (critical KPIs)
+        tau_designations = db.query(TauDesignation).filter(
+            TauDesignation.process_id == process.id
+        ).all()
+
+        # Get all SME proposals for this discovery
+        proposals = db.query(SmeTauProposal).filter(
+            SmeTauProposal.discovery_id == discovery_id
+        ).all()
+
+        # Build validation data per KPI
+        validation_data = []
+        for td in tau_designations:
+            kpi = db.query(KPI).filter(KPI.id == td.kpi_id).first()
+            parameter = db.query(Parameter).filter(Parameter.id == td.parameter_id).first()
+
+            # Get proposals for this KPI
+            kpi_proposals = [p for p in proposals if p.kpi_id == td.kpi_id]
+
+            # Compute stats
+            if kpi_proposals:
+                floors = sorted([p.proposed_floor for p in kpi_proposals])
+                median_floor = floors[len(floors) // 2]
+                min_floor = min(floors)
+                max_floor = max(floors)
+            else:
+                median_floor = None
+                min_floor = None
+                max_floor = None
+
+            validation_data.append({
+                "kpi_id": td.kpi_id,
+                "kpi_name": kpi.name if kpi else "Unknown",
+                "parameter_name": parameter.name if parameter else "Unknown",
+                "direction": td.direction,
+                "current_floor": td.tau_floor,
+                "designated_by": td.designated_by,
+                "sme_count": len(kpi_proposals),
+                "median_floor": median_floor,
+                "min_floor": min_floor,
+                "max_floor": max_floor,
+                "proposals": [
+                    {"floor": p.proposed_floor, "source": p.source_type, "justification": p.justification}
+                    for p in kpi_proposals
+                ],
+            })
+
+        has_proposals = any(v["sme_count"] > 0 for v in validation_data)
+
+        return templates.TemplateResponse("tau_validation.html", {
+            "request": request,
+            "discovery": discovery,
+            "process": process,
+            "validation_data": validation_data,
+            "has_proposals": has_proposals,
+        })
+
+    finally:
+        db.close()
+
+
+@router.post("/discovery/{discovery_id}/tau-validation", response_class=HTMLResponse)
+async def save_tau_validation(request: Request, discovery_id: str):
+    """Phase 2: Leadership confirms/overrides floors and locks tau."""
+    user = require_auth(request)
+    if not user:
+        return RedirectResponse(url="/", status_code=302)
+
+    db = SessionLocal()
+    try:
+        discovery = db.query(Discovery).filter(Discovery.id == discovery_id).first()
+        process = db.query(Process).filter(Process.discovery_id == discovery.id).first()
+
+        form_data = await request.form()
+
+        # Get all tau designations
+        tau_designations = db.query(TauDesignation).filter(
+            TauDesignation.process_id == process.id
+        ).all()
+
+        for td in tau_designations:
+            validated_floor = form_data.get(f"validated_floor_{td.kpi_id}")
+            if validated_floor:
+                try:
+                    td.tau_floor = float(validated_floor)
+                    td.designated_by = "leadership_validated"
+                    td.designated_at = datetime.utcnow()
+                except ValueError:
+                    continue
+
+        discovery.status = "tau_validated"
+        db.commit()
+
+    finally:
+        db.close()
+
+    return RedirectResponse(
+        url=f"/discovery/{discovery_id}/tau-validation",
+        status_code=302
+    )
