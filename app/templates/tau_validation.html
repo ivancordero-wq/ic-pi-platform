@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}IC-π™ — τ Validation (Leadership){% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto py-10 px-4">
+
+    <!-- Header -->
+    <div class="flex items-center gap-3 mb-2">
+        <span class="bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full">τ Phase 2</span>
+        <span class="bg-gray-700 text-gray-300 text-xs px-3 py-1 rounded-full">Leadership Validation</span>
+    </div>
+
+    <h1 class="text-2xl font-bold text-white mb-2">Trip Wire Floor Validation</h1>
+    <p class="text-gray-400 mb-6">
+        Process: <span class="text-white font-semibold">{{ process.name }}</span>
+    </p>
+
+    <!-- Context -->
+    <div class="bg-gray-800 border border-gray-700 rounded-lg p-4 mb-8">
+        <p class="text-gray-300 text-sm">
+            SMEs have proposed floor values for each critical KPI. Review the proposals below.
+            You may <strong class="text-white">accept the median</strong>, 
+            <strong class="text-white">override with a custom value</strong>, or 
+            <strong class="text-white">keep the original designation</strong>.
+            Once confirmed, τ floors are locked and the α kill switch is armed.
+        </p>
+    </div>
+
+    {% if not has_proposals %}
+    <!-- No proposals yet -->
+    <div class="bg-yellow-900/30 border border-yellow-700 rounded-lg p-6 text-center">
+        <p class="text-yellow-300 font-semibold mb-2">No SME proposals received yet</p>
+        <p class="text-gray-400 text-sm">
+            Generate magic links and send them to SMEs first. Once they submit floor proposals, 
+            you'll see their data here for validation.
+        </p>
+        <a href="/discovery/{{ discovery.id }}/generate-tau-links"
+           class="inline-block mt-4 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold px-4 py-2 rounded-lg transition">
+            Generate SME Links
+        </a>
+    </div>
+    {% else %}
+
+    <!-- Validation form -->
+    <form action="/discovery/{{ discovery.id }}/tau-validation" method="POST" class="space-y-6">
+
+        {% for item in validation_data %}
+        <div class="bg-gray-800 border border-gray-700 rounded-lg p-5">
+            <!-- KPI header -->
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <span class="text-xs text-indigo-400 font-medium">{{ item.parameter_name }}</span>
+                    <h3 class="text-white font-semibold text-lg">{{ item.kpi_name }}</h3>
+                    <span class="text-xs text-gray-500">
+                        {% if item.direction == "higher_is_better" %}
+                            📈 Higher is better (floor = minimum acceptable)
+                        {% else %}
+                            📉 Lower is better (floor = maximum acceptable)
+                        {% endif %}
+                    </span>
+                </div>
+                <span class="text-xs bg-gray-700 text-gray-300 px-2 py-1 rounded">
+                    {{ item.sme_count }} SME proposal{{ "s" if item.sme_count != 1 else "" }}
+                </span>
+            </div>
+
+            <!-- SME proposals summary -->
+            {% if item.sme_count > 0 %}
+            <div class="bg-gray-900 rounded-lg p-4 mb-4">
+                <p class="text-sm text-gray-400 mb-2 font-medium">SME Proposals:</p>
+                <div class="grid grid-cols-3 gap-4 mb-3">
+                    <div class="text-center">
+                        <p class="text-xs text-gray-500">Minimum</p>
+                        <p class="text-white font-bold text-lg">{{ item.min_floor }}</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-xs text-gray-500">Median</p>
+                        <p class="text-indigo-400 font-bold text-lg">{{ item.median_floor }}</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-xs text-gray-500">Maximum</p>
+                        <p class="text-white font-bold text-lg">{{ item.max_floor }}</p>
+                    </div>
+                </div>
+
+                <!-- Individual proposals -->
+                <details class="mt-2">
+                    <summary class="text-xs text-gray-500 cursor-pointer hover:text-gray-300">
+                        View individual proposals
+                    </summary>
+                    <div class="mt-2 space-y-1">
+                        {% for p in item.proposals %}
+                        <div class="flex justify-between text-xs text-gray-400 border-t border-gray-800 pt-1">
+                            <span>Floor: <span class="text-white">{{ p.floor }}</span></span>
+                            <span class="text-gray-500">{{ p.source }}</span>
+                            {% if p.justification %}
+                            <span class="text-gray-500 italic">"{{ p.justification }}"</span>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </details>
+            </div>
+            {% endif %}
+
+            <!-- Current designation (if any) -->
+            {% if item.current_floor %}
+            <p class="text-xs text-gray-500 mb-3">
+                Current floor: <span class="text-yellow-400 font-semibold">{{ item.current_floor }}</span>
+                (set by {{ item.designated_by or "consultant" }})
+            </p>
+            {% endif %}
+
+            <!-- Validated floor input -->
+            <div>
+                <label class="block text-sm text-gray-400 mb-1" for="validated_floor_{{ item.kpi_id }}">
+                    Confirmed Floor Value <span class="text-red-400">*</span>
+                </label>
+                <input type="number" step="any" name="validated_floor_{{ item.kpi_id }}" 
+                       id="validated_floor_{{ item.kpi_id }}"
+                       value="{{ item.median_floor if item.median_floor else item.current_floor or '' }}"
+                       required
+                       class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
+                       placeholder="Enter validated floor">
+                <p class="text-xs text-gray-600 mt-1">
+                    Pre-filled with SME median. Override if leadership disagrees.
+                </p>
+            </div>
+        </div>
+        {% endfor %}
+
+        <!-- Submit -->
+        <button type="submit"
+                class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg transition">
+            🔒 Lock τ Floors & Arm Kill Switch
+        </button>
+
+        <p class="text-gray-500 text-xs text-center mt-3">
+            ⚠️ Once locked, τ values cannot be changed. The α kill switch activates on breach.
+        </p>
+    </form>
+    {% endif %}
+
+    <!-- Back link -->
+    <a href="/discovery/{{ discovery.id }}/tau-designation" 
+       class="inline-block mt-6 text-indigo-400 hover:text-indigo-300 text-sm">
+        ← Back to τ Designation (Phase 1)
+    </a>
+</div>
+{% endblock %}
