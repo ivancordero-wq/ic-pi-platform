@@ -44,13 +44,13 @@ from app.routes.admin import admin_router
 # ---------------------------------------------------------------------------
 Base.metadata.create_all(bind=engine)
 # Migration: add assigned_sme_id to tau_designations_v2 if missing
-    from sqlalchemy import text
-    with engine.connect() as conn:
-        try:
-            conn.execute(text("ALTER TABLE tau_designations_v2 ADD COLUMN IF NOT EXISTS assigned_sme_id VARCHAR"))
-            conn.commit()
-        except Exception:
-            pass
+from sqlalchemy import text
+with engine.connect() as conn:
+    try:
+        conn.execute(text("ALTER TABLE tau_designations_v2 ADD COLUMN IF NOT EXISTS assigned_sme_id VARCHAR"))
+        conn.commit()
+    except Exception:
+        pass
 from app.seed_users import seed_default_users
 seed_default_users()
 # ---------------------------------------------------------------------------
