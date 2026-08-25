@@ -1,9 +1,16 @@
-from fastapi import APIRouter, Request, Form
+"""
+Screen 4 Task 4: SME Tau Floor Proposal
+========================================
+Assigned SME proposes floor value for their designated critical KPIs.
+Single submission, no Delphi. Leadership validates in Phase 2.
+"""
+
+from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import select
 from app.database import SessionLocal
-from app.models import SME, Discovery, Process, Parameter, KPI, SmeTauProposal
+from app.models import SME, Discovery, Process, Parameter, KPI, SmeTauProposal, TauDesignation
 from app.auth import decode_access_token
 import jwt
 
@@ -26,7 +33,7 @@ def generate_tau_link(sme_id: str, discovery_id: str, base_url: str) -> str:
 
 @sme_tau_router.get("/sme/tau", response_class=HTMLResponse)
 async def sme_tau_form(request: Request, token: str = None):
-    """SME tau floor proposal form."""
+    """SME tau floor proposal form. Shows only KPIs assigned to this SME."""
     if not token:
         return templates.TemplateResponse("sme_error.html", {
             "request": request,
@@ -68,10 +75,12 @@ async def sme_tau_form(request: Request, token: str = None):
             select(SME).where(SME.id == sme_id)
         ).scalar_one_or_none()
 
-        # Get critical KPIs (those with tau designations)
-        from app.models import TauDesignation
+        # Get ONLY the critical KPIs assigned to THIS SME
         tau_designations = db.execute(
-            select(TauDesignation).where(TauDesignation.process_id == process.id)
+            select(TauDesignation).where(
+                TauDesignation.process_id == process.id,
+                TauDesignation.assigned_sme_id == sme_id
+            )
         ).scalars().all()
 
         # Build list of critical KPIs with their parameter names
@@ -84,9 +93,9 @@ async def sme_tau_form(request: Request, token: str = None):
                 select(Parameter).where(Parameter.id == kpi.parameter_id)
             ).scalar_one_or_none()
             critical_kpis.append({
-                "kpi_id": kpi.id,
+                "kpi_id": str(kpi.id),
                 "kpi_name": kpi.name,
-                "parameter_name": parameter.name,
+                "parameter_name": parameter.name if parameter else "Unknown",
                 "direction": td.direction,
             })
 
@@ -104,6 +113,12 @@ async def sme_tau_form(request: Request, token: str = None):
                 "message": "You have already submitted your floor proposals."
             })
 
+        if not critical_kpis:
+            return templates.TemplateResponse("sme_error.html", {
+                "request": request,
+                "message": "No KPIs have been assigned to you for floor proposal."
+            })
+
     finally:
         db.close()
 
@@ -112,7 +127,7 @@ async def sme_tau_form(request: Request, token: str = None):
         "token": token,
         "sme_name": sme.name if sme else "Expert",
         "process_name": process.name if process else "",
-        "client_name": discovery.client_name if hasattr(discovery, 'client_name') else "",
+        "client_name": "",
         "critical_kpis": critical_kpis,
     })
 
@@ -148,10 +163,12 @@ async def sme_tau_submit(request: Request):
             select(Process).where(Process.discovery_id == discovery_id)
         ).scalar_one_or_none()
 
-        # Parse form: each KPI has floor_{kpi_id}, source_{kpi_id}, justification_{kpi_id}
-        from app.models import TauDesignation
+        # Get only KPIs assigned to this SME
         tau_designations = db.execute(
-            select(TauDesignation).where(TauDesignation.process_id == process.id)
+            select(TauDesignation).where(
+                TauDesignation.process_id == process.id,
+                TauDesignation.assigned_sme_id == sme_id
+            )
         ).scalars().all()
 
         for td in tau_designations:
@@ -162,8 +179,8 @@ async def sme_tau_submit(request: Request):
             if floor_value:
                 proposal = SmeTauProposal(
                     discovery_id=discovery_id,
-                    process_id=process.id,
-                    kpi_id=td.kpi_id,
+                    process_id=str(process.id),
+                    kpi_id=str(td.kpi_id),
                     sme_id=sme_id,
                     proposed_floor=float(floor_value),
                     source_type=source_type or "operational",
@@ -177,13 +194,13 @@ async def sme_tau_submit(request: Request):
 
     return templates.TemplateResponse("sme_complete.html", {
         "request": request,
-        "message": "Your floor proposals have been submitted. Thank you!"
+        "message": "Your floor proposal has been submitted. Thank you!"
     })
 
 
 @sme_tau_router.get("/discovery/{discovery_id}/generate-tau-links", response_class=HTMLResponse)
 async def generate_tau_links(request: Request, discovery_id: str):
-    """Consultant utility: generate magic links for SME tau proposals."""
+    """Consultant utility: generate magic links ONLY for assigned SMEs."""
     # Check consultant auth
     token = request.cookies.get("access_token")
     if not token:
@@ -195,15 +212,56 @@ async def generate_tau_links(request: Request, discovery_id: str):
 
     db = SessionLocal()
     try:
-        smes = db.execute(
-            select(SME).where(SME.discovery_id == discovery_id)
+        process = db.execute(
+            select(Process).where(Process.discovery_id == discovery_id)
+        ).scalar_one_or_none()
+
+        if not process:
+            return templates.TemplateResponse("sme_error.html", {
+                "request": request,
+                "message": "No process found for this discovery."
+            })
+
+        # Get tau designations that have an assigned SME
+        tau_designations = db.execute(
+            select(TauDesignation).where(
+                TauDesignation.process_id == process.id,
+                TauDesignation.assigned_sme_id.isnot(None)
+            )
         ).scalars().all()
 
+        # Group by assigned SME (each SME gets one link, may cover multiple KPIs)
+        sme_assignments = {}
+        for td in tau_designations:
+            sme_id = str(td.assigned_sme_id)
+            if sme_id not in sme_assignments:
+                sme_assignments[sme_id] = []
+            sme_assignments[sme_id].append(str(td.kpi_id))
+
+        # Build links only for assigned SMEs
         base_url = str(request.base_url).rstrip("/")
         links = []
-        for sme in smes:
-            link = generate_tau_link(str(sme.id), str(discovery_id), base_url)
-            links.append({"name": sme.name, "email": sme.email, "link": link})
+        for sme_id, kpi_ids in sme_assignments.items():
+            sme = db.execute(
+                select(SME).where(SME.id == sme_id)
+            ).scalar_one_or_none()
+            if sme:
+                link = generate_tau_link(str(sme.id), str(discovery_id), base_url)
+                links.append({
+                    "name": sme.name,
+                    "email": sme.email,
+                    "link": link,
+                    "kpi_count": len(kpi_ids)
+                })
+
+        if not links:
+            return templates.TemplateResponse("sme_tau_links.html", {
+                "request": request,
+                "links": [],
+                "discovery_id": discovery_id,
+                "no_assignments": True,
+            })
+
     finally:
         db.close()
 
@@ -211,4 +269,5 @@ async def generate_tau_links(request: Request, discovery_id: str):
         "request": request,
         "links": links,
         "discovery_id": discovery_id,
+        "no_assignments": False,
     })
