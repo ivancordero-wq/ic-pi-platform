@@ -9,7 +9,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from app.database import SessionLocal
-from app.models import Discovery, Process, Parameter, KPI, TauDesignation
+from app.models import Discovery, Process, Parameter, KPI, TauDesignation, Client
 from app.auth import decode_access_token
 
 admin_router = APIRouter()
@@ -40,6 +40,7 @@ async def admin_discoveries(request: Request):
 
         discovery_list = []
         for d in discoveries:
+            client = db.query(Client).filter(Client.id == d.client_id).first() if hasattr(d, 'client_id') else None
             process = db.query(Process).filter(Process.discovery_id == d.id).first()
             
             # Count some stats
@@ -55,7 +56,7 @@ async def admin_discoveries(request: Request):
 
             discovery_list.append({
                 "id": d.id,
-                "client_name": d.client_name if hasattr(d, 'client_name') else "Unknown",
+                "client_name": client.name if client else "Unknown",
                 "process_name": process.name if process else "No process",
                 "status": d.status if hasattr(d, 'status') else "unknown",
                 "created_at": str(d.created_at)[:10] if d.created_at else "?",
