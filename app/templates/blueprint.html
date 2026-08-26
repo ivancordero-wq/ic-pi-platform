@@ -46,7 +46,7 @@
     <p style="color: #4f46e5; font-weight: bold; letter-spacing: 2px;">IC-π™ BLUEPRINT</p>
     <h1>{{ process_name }}</h1>
     <p class="subtitle">{{ client_name }}</p>
-    <p class="meta">Generated: {{ generated_at }} | Discovery ID: {{ discovery.id[:8] }}...</p>
+    <p class="meta">Generated: {{ generated_at }} | Discovery ID: {{ discovery.id|string|truncate(8, True, '') }}...</p>
     <p class="meta">IC Commerce and Consulting | Patent Pending</p>
 </div>
 
