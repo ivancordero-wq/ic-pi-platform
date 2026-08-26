@@ -68,39 +68,17 @@
             <!-- SME proposals summary -->
             {% if item.sme_count > 0 %}
             <div class="bg-gray-900 rounded-lg p-4 mb-4">
-                <p class="text-sm text-gray-400 mb-2 font-medium">SME Proposals:</p>
-                <div class="grid grid-cols-3 gap-4 mb-3">
-                    <div class="text-center">
-                        <p class="text-xs text-gray-500">Minimum</p>
-                        <p class="text-white font-bold text-lg">{{ item.min_floor }}</p>
-                    </div>
-                    <div class="text-center">
-                        <p class="text-xs text-gray-500">Median</p>
-                        <p class="text-indigo-400 font-bold text-lg">{{ item.median_floor }}</p>
-                    </div>
-                    <div class="text-center">
-                        <p class="text-xs text-gray-500">Maximum</p>
-                        <p class="text-white font-bold text-lg">{{ item.max_floor }}</p>
-                    </div>
+                <p class="text-sm text-gray-400 mb-2 font-medium">Designated Authority Proposal:</p>
+                {% for p in item.proposals %}
+                <div class="flex items-baseline gap-3 mb-2">
+                    <span class="text-white font-semibold text-lg">{{ p.floor }}</span>
+                    <span class="text-gray-400 text-sm">proposed by <span class="text-indigo-400">{{ p.sme_name }}</span></span>
+                    <span class="text-xs bg-gray-700 text-gray-300 px-2 py-0.5 rounded">{{ p.source }}</span>
                 </div>
-
-                <!-- Individual proposals -->
-                <details class="mt-2">
-                    <summary class="text-xs text-gray-500 cursor-pointer hover:text-gray-300">
-                        View individual proposals
-                    </summary>
-                    <div class="mt-2 space-y-1">
-                        {% for p in item.proposals %}
-                        <div class="flex justify-between text-xs text-gray-400 border-t border-gray-800 pt-1">
-                            <span>Floor: <span class="text-white">{{ p.floor }}</span></span>
-                            <span class="text-gray-500">{{ p.source }}</span>
-                            {% if p.justification %}
-                            <span class="text-gray-500 italic">"{{ p.justification }}"</span>
-                            {% endif %}
-                        </div>
-                        {% endfor %}
-                    </div>
-                </details>
+                {% if p.justification %}
+                <p class="text-gray-500 text-xs italic ml-1">"{{ p.justification }}"</p>
+                {% endif %}
+                {% endfor %}
             </div>
             {% endif %}
 
@@ -124,7 +102,7 @@
                        class="w-full bg-gray-900 border border-gray-600 rounded px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
                        placeholder="Enter validated floor">
                 <p class="text-xs text-gray-600 mt-1">
-                    Pre-filled with SME median. Override if leadership disagrees.
+                    Pre-filled with the proposed floor. Override if leadership disagrees.
                 </p>
             </div>
         </div>
