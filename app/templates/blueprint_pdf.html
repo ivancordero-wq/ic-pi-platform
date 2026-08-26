@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>IC-π™ Blueprint — {{ client_name }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+            background: #fefcf9;
+            color: #1a1a2e;
+            line-height: 1.6;
+            padding: 40px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        h1 { font-size: 2.2rem; color: #0f0f23; margin-bottom: 8px; }
+        h2 { font-size: 1.5rem; color: #1a1a2e; margin-top: 48px; margin-bottom: 16px; border-bottom: 2px solid #e8e4df; padding-bottom: 8px; }
+        h3 { font-size: 1.1rem; color: #2d2d4e; margin-top: 24px; margin-bottom: 8px; }
+        p { margin-bottom: 12px; }
+        table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.9rem; }
+        th { background: #1a1a2e; color: white; padding: 10px 12px; text-align: left; }
+        td { padding: 8px 12px; border-bottom: 1px solid #e8e4df; }
+        tr:nth-child(even) { background: #f8f6f3; }
+        .cover { text-align: center; padding: 80px 0; border-bottom: 3px solid #1a1a2e; margin-bottom: 48px; }
+        .cover h1 { font-size: 2.8rem; }
+        .cover .subtitle { color: #555; font-size: 1.1rem; margin-top: 12px; }
+        .cover .meta { color: #888; font-size: 0.9rem; margin-top: 24px; }
+        .zone-badge { display: inline-block; padding: 6px 16px; border-radius: 6px; font-weight: bold; font-size: 1.1rem; }
+        .zone-RED { background: #fee2e2; color: #991b1b; border: 2px solid #fca5a5; }
+        .zone-YELLOW { background: #fef9c3; color: #854d0e; border: 2px solid #fde047; }
+        .zone-GREEN { background: #dcfce7; color: #166534; border: 2px solid #86efac; }
+        .npi-score { font-size: 3rem; font-weight: bold; color: #1a1a2e; margin: 16px 0; }
+        .weight-bar { background: #e8e4df; border-radius: 4px; height: 12px; position: relative; }
+        .weight-fill { background: #4f46e5; height: 100%; border-radius: 4px; }
+        .tau-alert { background: #fef2f2; border-left: 4px solid #ef4444; padding: 12px 16px; margin: 8px 0; }
+        .section-num { color: #4f46e5; font-weight: bold; margin-right: 8px; }
+        .footer { text-align: center; color: #888; font-size: 0.8rem; margin-top: 64px; padding-top: 24px; border-top: 1px solid #e8e4df; }
+        @media print { body { padding: 20px; } .cover { padding: 40px 0; } }
+    </style>
+</head>
+<body>
+
+<!-- SECTION 1: Cover Page -->
+<div class="cover">
+    <p style="color: #4f46e5; font-weight: bold; letter-spacing: 2px;">IC-π™ BLUEPRINT</p>
+    <h1>{{ process_name }}</h1>
+    <p class="subtitle">{{ client_name }}</p>
+    <p class="meta">Generated: {{ generated_at }} | Discovery ID: {{ discovery.id[:8] }}...</p>
+    <p class="meta">IC Commerce and Consulting | Patent Pending</p>
+</div>
+
+<!-- SECTION 2: Executive Summary -->
+<h2><span class="section-num">2.</span> Executive Summary</h2>
+{% if engine %}
+<p><strong>NPI Score:</strong></p>
+<p class="npi-score">{{ "%.1f"|format(engine.npi * 100) if engine.npi else "N/A" }}%</p>
+<p><strong>Zone Classification:</strong>
+    <span class="zone-badge zone-{{ engine.zone or 'YELLOW' }}">{{ engine.zone or "PENDING" }}</span>
+</p>
+<p>This Blueprint documents the complete IC-π™ Discovery for <strong>{{ process_name }}</strong> at {{ client_name }}.
+The performance model was constructed through structured expert consensus (Modified Delphi Protocol) and algorithmic governance.</p>
+{% else %}
+<p>Engine has not been run. No NPI available.</p>
+{% endif %}
+
+<!-- SECTION 3: Methodology Overview -->
+<h2><span class="section-num">3.</span> Methodology Overview</h2>
+<p>IC-π™ (Integrated Capability Performance Index) is a proprietary performance engineering technology that constructs a process-specific mathematical model through four governed mechanisms:</p>
+<table>
+    <tr><th>Mechanism</th><th>Purpose</th><th>Method</th></tr>
+    <tr><td><strong>ρ (Rho)</strong></td><td>Parameter Relevance</td><td>Algorithmic voting gate (no human override)</td></tr>
+    <tr><td><strong>θ (Theta)</strong></td><td>Weight Validation</td><td>Modified Delphi with algorithmic convergence</td></tr>
+    <tr><td><strong>τ (Tau)</strong></td><td>Trip Wire Floors</td><td>Designated authority calibration + leadership validation</td></tr>
+    <tr><td><strong>α (Alpha)</strong></td><td>Kill Switch</td><td>Non-compensatory breach enforcement</td></tr>
+</table>
+<p><strong>Formula:</strong> NPI = Σ[W_i × α_i × Σ(w_ij × KPI_ij)]</p>
+
+<!-- SECTION 4: SME Panel Composition -->
+<h2><span class="section-num">4.</span> SME Panel Composition</h2>
+<table>
+    <tr><th>Name</th><th>Email</th><th>Role</th></tr>
+    {% for sme in smes %}
+    <tr><td>{{ sme.name }}</td><td>{{ sme.email }}</td><td>{{ sme.role }}</td></tr>
+    {% endfor %}
+</table>
+<p><em>{{ smes|length }} Subject Matter Experts participated via anonymous magic-link access (zero registration).</em></p>
+
+<!-- SECTION 5: ρ Gate Results -->
+<h2><span class="section-num">5.</span> ρ Gate Results (Parameter Universe)</h2>
+<p>{{ parameters|length }} parameters survived the relevance gate and were carried into weighting.</p>
+<table>
+    <tr><th>#</th><th>Parameter</th><th>Source</th><th>W_i</th></tr>
+    {% for param in parameters %}
+    <tr>
+        <td>{{ loop.index }}</td>
+        <td>{{ param.name }}</td>
+        <td>{{ param.source }}</td>
+        <td>{{ param.weight }}%</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<!-- SECTION 6: θ Validation — Parameter Weights -->
+<h2><span class="section-num">6.</span> θ Validation: Parameter Weights (W_i)</h2>
+<p>Weights derived via Modified Delphi Protocol (forced ordinal ranking, algorithmic convergence, max 3 rounds).</p>
+{% for param in parameters %}
+<div style="display: flex; align-items: center; gap: 12px; margin: 8px 0;">
+    <span style="width: 200px; font-size: 0.9rem;">{{ param.name }}</span>
+    <div class="weight-bar" style="flex: 1;">
+        <div class="weight-fill" style="width: {{ param.weight }}%;"></div>
+    </div>
+    <span style="width: 50px; text-align: right; font-weight: bold; font-size: 0.9rem;">{{ param.weight }}%</span>
+</div>
+{% endfor %}
+
+<!-- SECTION 7: θ Validation — KPI Weights -->
+<h2><span class="section-num">7.</span> θ Validation: KPI Weights (w_ij)</h2>
+{% for param in parameters %}
+{% if param.kpis %}
+<h3>{{ param.name }} (W_i = {{ param.weight }}%)</h3>
+<table>
+    <tr><th>KPI</th><th>w_ij</th></tr>
+    {% for kpi in param.kpis %}
+    <tr><td>{{ kpi.name }}</td><td>{{ kpi.weight }}%</td></tr>
+    {% endfor %}
+</table>
+{% endif %}
+{% endfor %}
+
+<!-- SECTION 8: τ Designation Summary -->
+<h2><span class="section-num">8.</span> τ Designation Summary (Trip Wires)</h2>
+{% if tau_designations %}
+<table>
+    <tr><th>KPI</th><th>Floor (τ)</th><th>Direction</th><th>Designated By</th></tr>
+    {% for td in tau_designations %}
+    <tr>
+        <td>{{ td.kpi_name }}</td>
+        <td><strong>{{ td.floor }}</strong></td>
+        <td>{{ td.direction }}</td>
+        <td>{{ td.designated_by }}</td>
+    </tr>
+    {% endfor %}
+</table>
+<p><em>If any KPI score breaches its τ floor at run-time, the α kill switch fires and the parameter collapses to RED.</em></p>
+{% else %}
+<p>No trip wires designated for this Discovery.</p>
+{% endif %}
+
+<!-- SECTION 9: α Kill Switch Status -->
+<h2><span class="section-num">9.</span> α Kill Switch Status</h2>
+{% if engine and engine.result_data %}
+{% set alpha_kills = engine.result_data.get('alpha_kills', []) if engine.result_data is mapping else [] %}
+{% if alpha_kills %}
+{% for kill in alpha_kills %}
+<div class="tau-alert">
+    <strong>⚠️ BREACH:</strong> {{ kill.get('parameter', 'Unknown') }} — α fired. Parameter collapsed to RED.
+</div>
+{% endfor %}
+{% else %}
+<p style="color: #166534;">✓ No τ breaches detected. All parameters contributing normally to NPI.</p>
+{% endif %}
+{% else %}
+<p>No engine data available for kill switch analysis.</p>
+{% endif %}
+
+<!-- SECTION 10: NPI Calculation -->
+<h2><span class="section-num">10.</span> NPI Calculation</h2>
+{% if engine %}
+<p><strong>NPI = Σ[W_i × α_i × Σ(w_ij × KPI_ij)]</strong></p>
+<p class="npi-score">{{ "%.1f"|format(engine.npi * 100) if engine.npi else "N/A" }}%</p>
+{% else %}
+<p>Engine not yet run.</p>
+{% endif %}
+
+<!-- SECTION 11: Zone Analysis -->
+<h2><span class="section-num">11.</span> Zone Analysis</h2>
+{% if engine %}
+<p>The NPI score places this process in the <span class="zone-badge zone-{{ engine.zone or 'YELLOW' }}">{{ engine.zone or "PENDING" }}</span> zone.</p>
+<table>
+    <tr><th>Zone</th><th>Meaning</th></tr>
+    <tr><td style="color: #166534; font-weight: bold;">GREEN</td><td>Leadership aspiration achieved. Stewardship mode.</td></tr>
+    <tr><td style="color: #854d0e; font-weight: bold;">YELLOW</td><td>Gap exists between current and aspiration. Improvement needed.</td></tr>
+    <tr><td style="color: #991b1b; font-weight: bold;">RED</td><td>Critical underperformance or τ breach. Immediate action required.</td></tr>
+</table>
+{% else %}
+<p>No zone classification available.</p>
+{% endif %}
+
+<!-- SECTION 12: Prescriptions -->
+<h2><span class="section-num">12.</span> Prescriptions</h2>
+{% if engine and engine.result_data %}
+{% set prescriptions = engine.result_data.get('prescriptions', []) if engine.result_data is mapping else [] %}
+{% if prescriptions %}
+{% for rx in prescriptions %}
+<div style="background: #f8f6f3; border-left: 4px solid #4f46e5; padding: 12px 16px; margin: 12px 0;">
+    <strong>{{ rx.get('type', 'IMPROVEMENT') }}:</strong> {{ rx.get('description', '') }}
+</div>
+{% endfor %}
+{% else %}
+<p>AI-generated prescriptions will appear here based on gap analysis.</p>
+{% endif %}
+{% else %}
+<p>No prescriptions generated yet.</p>
+{% endif %}
+
+<!-- Footer -->
+<div class="footer">
+    <p>IC-π™ Performance Index | IC Commerce and Consulting | Patent Pending</p>
+    <p>This document is confidential and intended for {{ client_name }} leadership only.</p>
+</div>
+
+</body>
+</html>
