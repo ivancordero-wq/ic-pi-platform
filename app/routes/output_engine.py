@@ -104,7 +104,7 @@ def gather_blueprint_data(discovery_id: str):
             import json
             result_data = json.loads(engine_result.result_json) if engine_result.result_json else {}
             engine_data = {
-                "npi": result_data.get("npi", None),
+                "npi": result_data.get("npi_score", None),
                 "zone": engine_result.overall_zone,
                 "result_data": result_data,
             }
