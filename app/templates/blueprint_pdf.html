@@ -54,7 +54,7 @@
 <h2><span class="section-num">2.</span> Executive Summary</h2>
 {% if engine %}
 <p><strong>NPI Score:</strong></p>
-<p class="npi-score">{{ "%.1f"|format(engine.npi * 100) if engine.npi else "N/A" }}%</p>
+<p class="npi-score"> {{ "%.1f"|format(engine.npi) if engine.npi else "N/A" }}%</p>
 <p><strong>Zone Classification:</strong>
     <span class="zone-badge zone-{{ engine.zone or 'YELLOW' }}">{{ engine.zone or "PENDING" }}</span>
 </p>
