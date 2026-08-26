@@ -194,7 +194,7 @@ The performance model was constructed through structured expert consensus (Modif
 {% if prescriptions %}
 {% for rx in prescriptions %}
 <div style="background: #f8f6f3; border-left: 4px solid #4f46e5; padding: 12px 16px; margin: 12px 0;">
-    <strong>{{ rx.get('type', 'IMPROVEMENT') }}:</strong> {{ rx.get('description', '') }}
+    <strong>{{ rx.get('tier', 'IMPROVEMENT') }}:</strong> {{ rx.get('text', '') }}
 </div>
 {% endfor %}
 {% else %}
