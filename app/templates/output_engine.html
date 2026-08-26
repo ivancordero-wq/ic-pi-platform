@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}IC-π™ — Output Engine{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto py-10 px-4">
+
+    <!-- Header -->
+    <div class="flex items-center gap-3 mb-2">
+        <span class="bg-emerald-600 text-white text-xs font-bold px-3 py-1 rounded-full">Screen 6</span>
+        <span class="bg-gray-700 text-gray-300 text-xs px-3 py-1 rounded-full">Output Engine</span>
+    </div>
+
+    <h1 class="text-2xl font-bold text-white mb-2">Blueprint Generation</h1>
+    <p class="text-gray-400 mb-6">
+        <span class="text-white font-semibold">{{ process_name }}</span> — {{ client_name }}
+    </p>
+
+    {% if not has_engine_result %}
+    <!-- No engine result -->
+    <div class="bg-yellow-900/30 border border-yellow-700 rounded-lg p-6 text-center">
+        <p class="text-yellow-300 font-semibold mb-2">Engine has not been run yet</p>
+        <p class="text-gray-400 text-sm">
+            You need to run the Engine (Screen 3G) before generating the Blueprint.
+            The Blueprint pulls all data from the completed Engine run.
+        </p>
+    </div>
+    {% else %}
+
+    <!-- Generation Controls -->
+    <div class="bg-gray-800 border border-gray-700 rounded-lg p-6 mb-8">
+        <h2 class="text-white font-semibold text-lg mb-4">Generate Deliverables</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Preview Blueprint -->
+            <a href="/discovery/{{ discovery_id }}/blueprint" target="_blank"
+               class="flex flex-col items-center gap-2 bg-gray-900 border border-gray-600 hover:border-indigo-500 rounded-lg p-6 transition text-center">
+                <span class="text-3xl">📄</span>
+                <span class="text-white font-semibold">Preview Blueprint</span>
+                <span class="text-gray-400 text-xs">Full 13-section report (opens in new tab)</span>
+            </a>
+
+            <!-- Download PDF -->
+            <a href="/discovery/{{ discovery_id }}/blueprint/pdf"
+               class="flex flex-col items-center gap-2 bg-gray-900 border border-gray-600 hover:border-emerald-500 rounded-lg p-6 transition text-center">
+                <span class="text-3xl">📥</span>
+                <span class="text-white font-semibold">Download PDF</span>
+                <span class="text-gray-400 text-xs">WeasyPrint-rendered, print-ready</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Blueprint Contents -->
+    <div class="bg-gray-800 border border-gray-700 rounded-lg p-6">
+        <h2 class="text-white font-semibold text-lg mb-4">Blueprint Contents (13 Sections)</h2>
+        <div class="grid grid-cols-1 gap-2 text-sm">
+            <div class="flex items-center gap-3 text-gray-300">
+                <span class="text-emerald-400">✓</span> 1. Cover Page
+            </div>
+            <div class="flex items-center gap-3 text-gray-300">
+                <span class="text-emerald-400">✓</span> 2. Executive Summary
+            </div>
+            <div class="flex items-center gap-3 text-gray-300">
+                <span class="text-emerald-400">✓</span> 3. Methodology Overview
+            </div>
+            <div class="flex items-center gap-3 text-gray-300">
+                <span class="text-emerald-400">✓</span> 4. SME Panel Composition
+            </div>
+            <div class="flex items-center gap-3 text-gray-300">
+                <span class="text-emerald-400">✓</span> 5. ρ Gate Results
+            </div>
+            <div class="flex items-center gap-3 text-gray-300">
+                <span class="text-emerald-400">✓</span> 6. θ Validation: Parameter Weights
+            </div>
+            <div class="flex items-center gap-3 text-gray-300">
+                <span class="text-emerald-400">✓</span> 7. θ Validation: KPI Weights
+            </div>
+            <div class="flex items-center gap-3 text-gray-300">
+                <span class="text-emerald-400">✓</span> 8. τ Designation Summary
+            </div>
+            <div class="flex items-center gap-3 text-gray-300">
+                <span class="text-emerald-400">✓</span> 9. α Kill Switch Status
+            </div>
+            <div class="flex items-center gap-3 text-gray-300">
+                <span class="text-emerald-400">✓</span> 10. NPI Calculation
+            </div>
+            <div class="flex items-center gap-3 text-gray-300">
+                <span class="text-emerald-400">✓</span> 11. Zone Analysis
+            </div>
+            <div class="flex items-center gap-3 text-gray-300">
+                <span class="text-emerald-400">✓</span> 12. Prescriptions
+            </div>
+            <div class="flex items-center gap-3 text-gray-500">
+                <span class="text-gray-600">○</span> 13. Appendix (coming soon)
+            </div>
+        </div>
+    </div>
+
+    {% endif %}
+
+    <!-- Back link -->
+    <a href="/admin/discoveries" class="inline-block mt-8 text-indigo-400 hover:text-indigo-300 text-sm">
+        ← Back to Discoveries
+    </a>
+</div>
+{% endblock %}
