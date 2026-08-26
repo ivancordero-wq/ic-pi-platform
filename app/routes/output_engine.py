@@ -97,15 +97,16 @@ def gather_blueprint_data(discovery_id: str):
         # Engine Result
         engine_result = db.query(EngineResult).filter(
             EngineResult.discovery_id == discovery_id
-        ).order_by(EngineResult.created_at.desc()).first()
+        ).order_by(EngineResult.generated_at.desc()).first()
 
         engine_data = None
         if engine_result:
             import json
+            result_data = json.loads(engine_result.result_json) if engine_result.result_json else {}
             engine_data = {
-                "npi": engine_result.npi_score if hasattr(engine_result, 'npi_score') else None,
-                "zone": engine_result.zone if hasattr(engine_result, 'zone') else None,
-                "result_data": json.loads(engine_result.result_json) if hasattr(engine_result, 'result_json') and engine_result.result_json else {},
+                "npi": result_data.get("npi", None),
+                "zone": engine_result.overall_zone,
+                "result_data": result_data,
             }
 
         return {
