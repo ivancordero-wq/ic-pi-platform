@@ -242,8 +242,13 @@ async def tau_validation_view(request: Request, discovery_id: str):
                 "median_floor": median_floor,
                 "min_floor": min_floor,
                 "max_floor": max_floor,
-                "proposals": [
-                    {"floor": p.proposed_floor, "source": p.source_type, "justification": p.justification}
+               "proposals": [
+                    {
+                        "floor": p.proposed_floor,
+                        "source": p.source_type,
+                        "justification": p.justification,
+                        "sme_name": db.query(SME).filter(SME.id == p.sme_id).first().name if db.query(SME).filter(SME.id == p.sme_id).first() else "Unknown"
+                    }
                     for p in kpi_proposals
                 ],
             })
