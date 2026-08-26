@@ -218,7 +218,7 @@ async def tau_validation_view(request: Request, discovery_id: str):
             parameter = db.query(Parameter).filter(Parameter.id == td.parameter_id).first()
 
             # Get proposals for this KPI
-            kpi_proposals = [p for p in proposals if str(p.kpi_id) == str(td.kpi_id)]
+            kpi_proposals = [p for p in proposals if str(p.kpi_id) == str(td.kpi_id) and str(p.sme_id) == str(td.assigned_sme_id)]
 
             # Compute stats
             if kpi_proposals:
