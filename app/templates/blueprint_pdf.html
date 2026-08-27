@@ -204,7 +204,22 @@ The performance model was constructed through structured expert consensus (Modif
 <p>No prescriptions generated yet.</p>
 {% endif %}
 
-<!-- Footer -->
+<!-- SECTION 12b: AI-Generated Prescriptions (Projects) -->
+{% if engine and engine.result_data %}
+{% set ai_rx = engine.result_data.get('ai_prescriptions', []) if engine.result_data is mapping else [] %}
+{% if ai_rx %}
+<h2><span class="section-num">13.</span> Prescriptions (Recommended Projects)</h2>
+<p>Based on the gap analysis above, the IC-π™ AI-Hybrid engine recommends the following improvement projects:</p>
+{% for rx in ai_rx %}
+<div style="background: #f0fdf4; border-left: 4px solid #16a34a; padding: 16px; margin: 16px 0;">
+    <p style="font-weight: bold; color: #166534; margin-bottom: 4px;">{{ rx.get('parameter', '') }} → {{ rx.get('kpi', '') }}</p>
+    <p style="white-space: pre-line;">{{ rx.get('projects', '') }}</p>
+</div>
+{% endfor %}
+{% endif %}
+{% endif %}
+
+    <!-- Footer -->
 <div class="footer">
     <p>IC-π™ Performance Index | IC Commerce and Consulting | Patent Pending</p>
     <p>This document is confidential and intended for {{ client_name }} leadership only.</p>
