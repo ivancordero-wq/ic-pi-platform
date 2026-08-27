@@ -290,7 +290,7 @@ def compute_npi(process_id, db):
             for gap in top_gaps:
                 prompt = (
                     f"You are a senior management consultant specializing in process improvement. "
-                    f"A client is running a process called '{process_name}'. "
+                    f"A client is running a process called '{process.name}'. "
                     f"The performance model identified that the KPI '{gap['kpi']}' in the parameter "
                     f"'{gap['parameter']}' has the largest performance gap. "
                     f"Suggest 2 concrete improvement projects that a leadership team would fund. "
