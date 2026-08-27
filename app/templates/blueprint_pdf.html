@@ -168,7 +168,7 @@ The performance model was constructed through structured expert consensus (Modif
 <h2><span class="section-num">10.</span> NPI Calculation</h2>
 {% if engine %}
 <p><strong>NPI = Σ[W_i × α_i × Σ(w_ij × KPI_ij)]</strong></p>
-<p class="npi-score">{{ "%.1f"|format(engine.npi * 100) if engine.npi else "N/A" }}%</p>
+<p class="npi-score">{{ "%.1f"|format(engine.npi) if engine.npi else "N/A" }}%</p>
 {% else %}
 <p>Engine not yet run.</p>
 {% endif %}
