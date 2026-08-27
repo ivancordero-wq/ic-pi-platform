@@ -8,6 +8,8 @@ Formula: NPI = SUM(W_i * alpha_i * SUM(w_ij * KPI_ij))
 Where KPI_ij = score / 100 (normalized to 0-1)
 """
 
+import os
+from openai import OpenAI
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
@@ -275,6 +277,41 @@ def compute_npi(process_id, db):
                     "kpi": "multiple",
                     "weighted_gap": 0,
                 })
+                 # AI-Generated Project Suggestions (Prescriptions)
+    ai_prescriptions = []
+    openai_key = os.environ.get("OPENAI_API_KEY")
+    if openai_key and prescriptions:
+        try:
+            client = OpenAI(api_key=openai_key)
+            top_gaps = [p for p in prescriptions if p["tier"] == "HIGH IMPACT"][:3]
+            if not top_gaps:
+                top_gaps = prescriptions[:3]
+
+            for gap in top_gaps:
+                prompt = (
+                    f"You are a senior management consultant specializing in process improvement. "
+                    f"A client is running a process called '{process_name}'. "
+                    f"The performance model identified that the KPI '{gap['kpi']}' in the parameter "
+                    f"'{gap['parameter']}' has the largest performance gap. "
+                    f"Suggest 2 concrete improvement projects that a leadership team would fund. "
+                    f"Each project should be specific, actionable, and name what will be done "
+                    f"(not abstract like 'improve this KPI'). "
+                    f"Format: one project per line, starting with a dash. Keep each under 40 words."
+                )
+                response = client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[{"role": "user", "content": prompt}],
+                    max_tokens=200,
+                    temperature=0.7,
+                )
+                ai_text = response.choices[0].message.content.strip()
+                ai_prescriptions.append({
+                    "parameter": gap["parameter"],
+                    "kpi": gap["kpi"],
+                    "projects": ai_text,
+                })
+        except Exception:
+            pass
     return {
         "npi_score": npi_score,
         "zone": zone,
@@ -283,6 +320,7 @@ def compute_npi(process_id, db):
         "parameter_results": parameter_results,
         "alpha_alerts": alpha_alerts,
         "prescriptions": prescriptions,
+        "ai_prescriptions": ai_prescriptions,
     }
 
 
