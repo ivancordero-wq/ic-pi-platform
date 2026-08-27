@@ -186,21 +186,95 @@ def compute_npi(process_id, db):
     else:
         zone = "YELLOW"
 
-    # Generate prescriptions
+    # Generate prescriptions (weighted gap method)
     prescriptions = []
+
+    # CRITICAL tier: tau breaches (fix these first or NPI stays collapsed)
     for alert in alpha_alerts:
         prescriptions.append({
             "tier": "CRITICAL",
-            "text": f"Immediate remediation for '{alert['kpi_name']}' in {alert['parameter']} (normalized score: {alert['score']}%, below threshold {alert['tau_floor']}%). Alpha kill switch active.",
+            "text": f"URGENT: {alert['kpi_name']} in {alert['parameter']} has breached its trip wire floor "
+                    f"(score: {alert['score']}%, floor: {alert['tau_floor']}%). "
+                    f"This parameter's entire {alert['impact']}% weight is zeroed out. "
+                    f"Identify root cause and restore {alert['kpi_name']} above threshold before any other initiative.",
+            "parameter": alert["parameter"],
+            "kpi": alert["kpi_name"],
+            "weighted_gap": alert["impact"] / 100.0,
         })
 
+    # HIGH IMPACT tier: top parameters by weighted gap (W_i * (1 - composite))
+    gaps = []
     for pr in parameter_results:
-        if pr["signal"] == "Low" and pr["alpha"] == 1.0:
-            prescriptions.append({
-                "tier": "PREVENTIVE",
-                "text": f"Sprint to address '{pr['name']}' (composite score: {pr['composite_score']}%, approaching critical zone).",
+        if pr["alpha"] == 1.0 and pr["composite_score"] < 100:
+            composite_decimal = pr["composite_score"] / 100.0
+            w_i_decimal = pr["W_i"] / 100.0
+            weighted_gap = w_i_decimal * (1 - composite_decimal)
+            gaps.append({
+                "name": pr["name"],
+                "W_i": pr["W_i"],
+                "composite": pr["composite_score"],
+                "weighted_gap": round(weighted_gap * 100, 1),
+                "kpi_details": pr["kpi_details"],
             })
 
+    # Sort by weighted gap descending
+    gaps.sort(key=lambda x: x["weighted_gap"], reverse=True)
+
+    # Take top 3 parameters for HIGH IMPACT prescriptions
+    for g in gaps[:3]:
+        if g["weighted_gap"] <= 0:
+            continue
+
+        # Find the worst KPI within this parameter
+        worst_kpi = None
+        worst_kpi_gap = 0
+        for kpi in g["kpi_details"]:
+            if kpi["score"] is not None:
+                kpi_score_decimal = kpi["score"] / 100.0
+                w_ij_decimal = kpi["w_ij"] / 100.0
+                kpi_gap = w_ij_decimal * (1 - kpi_score_decimal)
+                if kpi_gap > worst_kpi_gap:
+                    worst_kpi_gap = kpi_gap
+                    worst_kpi = kpi
+
+        if worst_kpi:
+            potential_npi_gain = round(g["weighted_gap"] * 0.5, 1)
+            prescriptions.append({
+                "tier": "HIGH IMPACT",
+                "text": f"Target '{worst_kpi['name']}' within {g['name']} (weight: {g['W_i']}%, "
+                        f"current composite: {g['composite']}%). "
+                        f"This KPI (w_ij: {worst_kpi['w_ij']}%, score: {worst_kpi['score']}%) "
+                        f"has the largest gap in the highest-priority parameter. "
+                        f"Improving it to 70% would add approximately {potential_npi_gain} points to NPI.",
+                "parameter": g["name"],
+                "kpi": worst_kpi["name"],
+                "weighted_gap": g["weighted_gap"],
+            })
+        else:
+            prescriptions.append({
+                "tier": "HIGH IMPACT",
+                "text": f"Parameter '{g['name']}' (weight: {g['W_i']}%, composite: {g['composite']}%) "
+                        f"has a weighted gap of {g['weighted_gap']} points. "
+                        f"Score all KPIs in this parameter to identify the specific improvement target.",
+                "parameter": g["name"],
+                "kpi": "unscored",
+                "weighted_gap": g["weighted_gap"],
+            })
+
+    # PREVENTIVE tier: parameters performing OK but approaching risk
+    for pr in parameter_results:
+        if pr["alpha"] == 1.0 and 40 <= pr["composite_score"] <= 70:
+            already_prescribed = any(p["parameter"] == pr["name"] for p in prescriptions)
+            if not already_prescribed:
+                prescriptions.append({
+                    "tier": "PREVENTIVE",
+                    "text": f"Monitor '{pr['name']}' closely (composite: {pr['composite_score']}%, weight: {pr['W_i']}%). "
+                            f"Performance is acceptable but trending toward the critical zone. "
+                            f"Identify early warning indicators and establish intervention triggers.",
+                    "parameter": pr["name"],
+                    "kpi": "multiple",
+                    "weighted_gap": 0,
+                })
     return {
         "npi_score": npi_score,
         "zone": zone,
