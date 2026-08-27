@@ -141,7 +141,7 @@ async def output_engine_view(request: Request, discovery_id: str):
         process = db.query(Process).filter(Process.discovery_id == discovery_id).first()
         engine_result = db.query(EngineResult).filter(
             EngineResult.discovery_id == discovery_id
-        ).order_by(EngineResult.created_at.desc()).first()
+        ).first()
     finally:
         db.close()
 
