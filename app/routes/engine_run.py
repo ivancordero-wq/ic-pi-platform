@@ -284,6 +284,17 @@ def compute_npi(process_id, db):
         try:
             client = OpenAI(api_key=openai_key)
             top_gaps = [p for p in prescriptions if p["tier"] == "HIGH IMPACT"][:3]
+            # Enrich with metrics from gaps list
+            for tg in top_gaps:
+                matching_gap = next((g for g in gaps if g["name"] == tg["parameter"]), None)
+                if matching_gap:
+                    tg["W_i"] = matching_gap["W_i"]
+                    tg["composite"] = matching_gap["composite"]
+                    # Find the target KPI metrics
+                    target_kpi = next((k for k in matching_gap["kpi_details"] if k["name"] == tg["kpi"]), None)
+                    if target_kpi:
+                        tg["w_ij"] = target_kpi["w_ij"]
+                        tg["score"] = target_kpi["score"]
             if not top_gaps:
                 top_gaps = prescriptions[:3]
 
@@ -308,6 +319,11 @@ def compute_npi(process_id, db):
                 ai_prescriptions.append({
                     "parameter": gap["parameter"],
                     "kpi": gap["kpi"],
+                    "W_i": gap.get("W_i", "?"),
+                    "w_ij": gap.get("w_ij", "?"),
+                    "score": gap.get("score", "?"),
+                    "composite": gap.get("composite", "?"),
+                    "weighted_gap": gap.get("weighted_gap", 0),
                     "projects": ai_text,
                 })
         except Exception:
