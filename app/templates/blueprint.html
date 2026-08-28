@@ -212,7 +212,7 @@ The performance model was constructed through structured expert consensus (Modif
 <p>Based on the gap analysis above, the IC-π™ AI-Hybrid engine recommends the following improvement projects:</p>
 {% for rx in ai_rx %}
 <div style="background: #f0fdf4; border-left: 4px solid #16a34a; padding: 16px; margin: 16px 0;">
-<p style="font-weight: bold; color: #166534; margin-bottom: 4px;">{{ rx.get('parameter', '') }} (W_i = {{ rx.get('W_i', '?') }}%, composite: {{ rx.get('composite', '?') }}%) → {{ rx.get('kpi', '') }} (w_ij = {{ rx.get('w_ij', '?') }}%, score: {{ rx.get('score', '?') }}%)</p>
+    <p style="font-weight: bold; color: #166534; margin-bottom: 4px;">{{ rx.get('parameter', '') }} (W_i = {{ rx.get('W_i', '?') }}%, composite: {{ rx.get('composite', '?') }}%) → {{ rx.get('kpi', '') }} (w_ij = {{ rx.get('w_ij', '?') }}%, score: {{ rx.get('score', '?') }}%)</p>
     <p style="color: #555; font-size: 0.85rem; margin-bottom: 8px;">Urgency: <strong>{{ rx.get('weighted_gap', 0) }} NPI points</strong> of potential improvement</p>
     <p style="white-space: pre-line;">{{ rx.get('projects', '') }}</p>    
 </div>
