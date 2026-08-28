@@ -25,7 +25,7 @@
             Rephrase your process name (attempt {{ attempt }}/3)
         </button>
     </div>
-    {% else %}
+    {% elif confidence != "high" %}
     <!-- Max attempts reached: show disclaimer + proceed -->
     <div class="mt-4 pt-3 border-t border-slate-700">
         <div class="p-3 rounded bg-yellow-900/30 border border-yellow-600/40 mb-3">
