@@ -1,3 +1,5 @@
+import os
+from openai import OpenAI
 """
 IC-Pi AI-Hybrid Service
 ========================
@@ -141,51 +143,93 @@ PARAMETER_CATALOG = {
 def disambiguate_process(industry: str, user_input: str) -> dict:
     """
     Given an industry and user-typed process name, return ranked canonical matches.
-    Returns dict with 'matches' (list of suggestions) and 'confidence' level.
-    
-    Architecture note: Replace internals with LLM API call for production.
+    Uses OpenAI GPT-4o-mini for AI-powered disambiguation.
+    Falls back to keyword matching if no API key available.
     """
     user_lower = user_input.lower().strip()
+
+    # Try AI-powered disambiguation first
+    openai_key = os.environ.get("OPENAI_API_KEY")
+    if openai_key:
+        try:
+            client = OpenAI(api_key=openai_key)
+            prompt = (
+                f"You are an expert in business process taxonomy across all industries. "
+                f"A consultant entered the following process description for a client in the '{industry}' industry: "
+                f"'{user_input}'. "
+                f"Suggest 5 canonical process names that best match what this client likely means. "
+                f"These should be standard, recognizable process names used in {industry} organizations. "
+                f"Rank them from best fit to least fit. "
+                f"Format: return ONLY the process names, one per line, numbered 1-5. No explanations."
+            )
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=200,
+                temperature=0.3,
+            )
+            ai_text = response.choices[0].message.content.strip()
+
+            # Parse numbered lines into list
+            matches = []
+            for line in ai_text.split("\n"):
+                line = line.strip()
+                if line:
+                    # Remove numbering (1. or 1) or - prefix)
+                    cleaned = line.lstrip("0123456789.-) ").strip()
+                    if cleaned:
+                        matches.append(cleaned)
+
+            if matches:
+                return {
+                    "matches": matches[:5],
+                    "confidence": "high",
+                    "original_input": user_input,
+                    "source": "ai",
+                }
+        except Exception:
+            pass  # Fall through to keyword matching
+
+    # Fallback: keyword matching against curated catalog
     catalog = PROCESS_CATALOG.get(industry, [])
-    
+
     if not catalog:
-        # Industry not in our catalog yet: return empty matches
         return {
             "matches": [],
             "confidence": "low",
-            "message": "Industry not yet mapped. Proceeding with your input directly."
+            "message": "Industry not yet mapped. Proceeding with your input directly.",
+            "original_input": user_input,
         }
-    
+
     # Simple keyword matching (placeholder for semantic/LLM matching)
     scored = []
     for canonical in catalog:
         canonical_lower = canonical.lower()
-        # Score based on word overlap
         user_words = set(user_lower.replace("-", " ").replace("&", " ").split())
         canonical_words = set(canonical_lower.replace("-", " ").replace("&", " ").replace("(", "").replace(")", "").split())
-        
+
         overlap = user_words & canonical_words
         if overlap:
             score = len(overlap) / max(len(user_words), 1)
             scored.append({"name": canonical, "score": score})
-    
+
     # Sort by score descending, take top 3
     scored.sort(key=lambda x: x["score"], reverse=True)
     top_matches = scored[:3]
-    
+
     if not top_matches:
-        # No keyword overlap: return all processes for that industry as suggestions
         top_matches = [{"name": p, "score": 0.3} for p in catalog[:5]]
         confidence = "low"
     elif top_matches[0]["score"] >= 0.6:
         confidence = "high"
     else:
         confidence = "medium"
-    
+
     return {
         "matches": [m["name"] for m in top_matches],
         "confidence": confidence,
         "original_input": user_input,
+        "source": "catalog",
     }
 
 
