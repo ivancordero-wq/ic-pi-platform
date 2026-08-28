@@ -73,6 +73,7 @@ async def validate_process(
     process_name: str = Form(...),
     industry: str = Form(...),
     attempt: int = Form(1),
+    industry_other: str = Form(""),
 ):
     """
     HTMX endpoint: receives process name + industry, returns disambiguation partial.
@@ -85,7 +86,8 @@ async def validate_process(
     if not user_data:
         return HTMLResponse("<p class='text-red-400'>Session expired.</p>", status_code=401)
 
-    result = disambiguate_process(industry, process_name)
+    actual_industry = industry_other.strip() if industry == "Other" and industry_other.strip() else industry
+    result = disambiguate_process(actual_industry, process_name)
 
     if not result["matches"] and result.get("message"):
         # Industry not in catalog
