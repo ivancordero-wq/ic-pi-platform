@@ -106,6 +106,7 @@ async def validate_process(
             "request": request,
             "matches": result["matches"],
             "no_catalog": False,
+            "confidence": result.get("confidence", "medium"),
             "original_input": process_name,
             "attempt": attempt,
         },
