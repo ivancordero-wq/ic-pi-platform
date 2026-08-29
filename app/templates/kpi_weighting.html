@@ -97,6 +97,14 @@
                                 {% if kpi.description %}
                                 <p class="text-slate-500 text-xs">{{ kpi.description }}</p>
                                 {% endif %}
+                                {% if kpi.formula %} <p class="text-cyan-400 text-xs mt-1">Formula: {{ kpi.formula }}</p>
+                                {% endif %}
+                                {% if kpi.data_source %} <p class="text-slate-500 text-xs">Source: {{ kpi.data_source }}</p>
+                                {% endif %}
+                                {% if kpi.data_scenario %} <p class="text-slate-500 text-xs">Scenario: {{ kpi.data_scenario }}</p>
+                                {% endif %}
+                                {% if kpi.formula_notes %} <p class="text-slate-500 text-xs italic">{{ kpi.formula_notes }}</p>
+                                {% endif %}
                             </td>
                             <td class="text-center p-2">
                                 <span class="px-2 py-0.5 rounded text-xs {% if kpi.source == 'ai' %}bg-purple-900/50 text-purple-300{% elif kpi.source == 'regulation' %}bg-blue-900/50 text-blue-300{% else %}bg-slate-700 text-slate-300{% endif %}">
