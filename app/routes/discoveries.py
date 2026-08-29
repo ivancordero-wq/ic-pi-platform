@@ -147,7 +147,18 @@ def create_kpis_batch(data: list[KPICreate], db: Session = Depends(get_db)):
     db.commit()
     return created
 
-
+@router.put("/kpis/{kpi_id}")
+def update_kpi_formula(kpi_id: UUID, data: dict, db: Session = Depends(get_db)):
+    kpi = db.query(models.KPI).filter(models.KPI.id == kpi_id).first()
+    if not kpi:
+        raise HTTPException(status_code=404, detail="KPI not found")
+    for field in ["formula", "data_source", "data_scenario", "formula_notes"]:
+        if field in data:
+            setattr(kpi, field, data[field])
+    db.commit()
+    db.refresh(kpi)
+    return {"id": str(kpi.id), "name": kpi.name}
+    
 @router.post("/smes")
 def create_sme(data: SMECreate, db: Session = Depends(get_db)):
     sme = models.SME(**data.model_dump())
