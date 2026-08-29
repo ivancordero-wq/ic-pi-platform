@@ -87,6 +87,7 @@
                             <th class="text-center p-2 text-slate-400 font-medium">Variance</th>
                             <th class="text-center p-2 text-slate-400 font-medium">w<sub>ij</sub></th>
                             <th class="text-center p-2 text-slate-400 font-medium">Status</th>
+                            <th class="text-center p-2 text-slate-400 font-medium">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -125,6 +126,11 @@
                                 {% else %}
                                 <span class="px-2 py-0.5 rounded text-xs bg-slate-700 text-slate-400">Pending</span>
                                 {% endif %}
+                            </td>
+                            <td class="text-center p-2"> <button onclick="openFormulaModal('{{ kpi.id }}', '{{ kpi.name }}', '{{ kpi.formula or '' }}', '{{ kpi.data_source or '' }}', '{{ kpi.data_scenario or '' }}', '{{ kpi.formula_notes or '' }}')"
+            class="px-2 py-0.5 rounded text-xs bg-cyan-900/50 text-cyan-300 border border-cyan-700/50 hover:bg-cyan-800/50 transition">
+                                    Edit Formula
+                                </button>
                             </td>
                         </tr>
                         {% endfor %}
