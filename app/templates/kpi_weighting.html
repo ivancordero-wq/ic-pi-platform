@@ -182,4 +182,69 @@
     {% endif %}
 
 </div>
+<!-- Formula Edit Modal -->
+<div id="formulaModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50" onclick="if(event.target===this)closeFormulaModal()">
+    <div class="bg-slate-800 border border-slate-600 rounded-lg p-6 w-full max-w-lg mx-4">
+        <h3 class="text-lg font-semibold text-white mb-1">Edit Measurement Formula</h3>
+        <p id="modalKpiName" class="text-sm text-cyan-400 mb-4"></p>
+        <input type="hidden" id="modalKpiId">
+        <div class="space-y-3">
+            <div>
+                <label class="text-xs text-slate-400 uppercase">Formula</label>
+                <input id="modalFormula" type="text" class="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-white text-sm" placeholder="e.g. (Resolved / Total) × 100">
+            </div>
+            <div>
+                <label class="text-xs text-slate-400 uppercase">Data Source</label>
+                <input id="modalDataSource" type="text" class="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-white text-sm" placeholder="e.g. SAP Module HR, Salesforce CRM">
+            </div>
+            <div>
+                <label class="text-xs text-slate-400 uppercase">Data Scenario (1, 2, or 3)</label>
+                <select id="modalDataScenario" class="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-white text-sm">
+                    <option value="">Select...</option>
+                    <option value="1">1 - Client already tracks this KPI</option>
+                    <option value="2">2 - Client tracks something close (formula bridges gap)</option>
+                    <option value="3">3 - Never measured (building pipeline is a project)</option>
+                </select>
+            </div>
+            <div>
+                <label class="text-xs text-slate-400 uppercase">Formula Notes</label>
+                <textarea id="modalFormulaNotes" rows="2" class="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-white text-sm" placeholder="Any clarifications or assumptions"></textarea>
+            </div>
+        </div>
+        <div class="flex justify-end gap-3 mt-4">
+            <button onclick="closeFormulaModal()" class="px-4 py-2 bg-slate-600 hover:bg-slate-500 text-white text-sm rounded-lg transition">Cancel</button>
+            <button onclick="saveFormula()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white text-sm font-semibold rounded-lg transition">Save</button>
+        </div>
+    </div>
+</div>
+
+<script>
+function openFormulaModal(id, name, formula, dataSource, dataScenario, formulaNotes) {
+    document.getElementById('modalKpiId').value = id;
+    document.getElementById('modalKpiName').textContent = name;
+    document.getElementById('modalFormula').value = formula;
+    document.getElementById('modalDataSource').value = dataSource;
+    document.getElementById('modalDataScenario').value = dataScenario;
+    document.getElementById('modalFormulaNotes').value = formulaNotes;
+    const modal = document.getElementById('formulaModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+function closeFormulaModal() {
+    const modal = document.getElementById('formulaModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+function saveFormula() {
+    const id = document.getElementById('modalKpiId').value;
+    const payload = {
+        formula: document.getElementById('modalFormula').value,
+        data_source: document.getElementById('modalDataSource').value,
+        data_scenario: document.getElementById('modalDataScenario').value ? parseInt(document.getElementById('modalDataScenario').value) : null,
+        formula_notes: document.getElementById('modalFormulaNotes').value
+    };
+    fetch('/api/discoveries/kpis/' + id, {method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)})
+    .then(r => { if(r.ok) { closeFormulaModal(); location.reload(); } else { alert('Error saving formula'); }});
+}
+</script>
 {% endblock %}
