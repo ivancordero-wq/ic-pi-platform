@@ -39,6 +39,10 @@ class KPICreate(BaseModel):
     name: str
     description: Optional[str] = None
     unit: Optional[str] = None
+    formula: Optional[str] = None
+    data_source: Optional[str] = None
+    data_scenario: Optional[int] = None
+    formula_notes: Optional[str] = None
 
 
 class SMECreate(BaseModel):
