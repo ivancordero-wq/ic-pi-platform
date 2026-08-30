@@ -3,7 +3,6 @@ IC-Pi Formula Generator Service
 ================================
 Calls OpenAI GPT-4o-mini to generate measurement formulas for KPIs.
 Fires after Screen 3D locks KPIs (Phase 1 deliverable).
-Same architecture as prescriptions: context in, structured output out.
 Cost: ~$0.01-0.05 per Discovery.
 """
 
@@ -16,65 +15,76 @@ OPENAI_MODEL = "gpt-4o-mini"
 OPENAI_URL = "https://api.openai.com/v1/chat/completions"
 
 
-def generate_formulas_for_kpis(industry: str, process_name: str, kpi_list: list) -> list:
+def build_kpi_block(kpi_list):
+    lines = []
+    for i, kpi in enumerate(kpi_list, 1):
+        lines.append(str(i) + ". KPI: " + kpi["name"])
+        lines.append("   Parameter: " + kpi["parameter_name"])
+        lines.append("   Description: " + kpi.get("description", "N/A"))
+        lines.append("   Unit: " + kpi.get("unit", "N/A"))
+        lines.append("")
+    return "
+".join(lines)
+
+
+def build_prompt(industry, process_name, kpi_block):
+    return (
+        "You are an expert performance measurement consultant.
+
+"
+        "Industry: " + industry + "
+"
+        "Process: " + process_name + "
+
+"
+        "For each KPI below, provide:
+"
+        "1. A precise MEASUREMENT FORMULA (how to compute it from raw data)
+"
+        "2. Brief NOTES (assumptions, edge cases, or data considerations)
+
+"
+        "The formula must be specific enough that a data analyst who has never "
+        "seen this KPI can compute it from source data. Use standard notation: "
+        "numerator/denominator, percentages, averages, etc.
+
+"
+        "KPIs:
+" + kpi_block + "
+
+"
+        "Respond in valid JSON array format. Each element must have:
+"
+        '- "kpi_index" (integer, matching the numbering above)
+'
+        '- "formula" (string, the measurement formula)
+'
+        '- "formula_notes" (string, brief assumptions or notes)
+
+'
+        "Return ONLY the JSON array, no other text."
+    )
+
+
+def generate_formulas_for_kpis(industry, process_name, kpi_list):
     """
     Given industry, process, and a list of KPI dicts,
     call GPT-4o-mini to generate measurement formulas.
 
     kpi_list: [{"id": uuid, "name": str, "description": str, "parameter_name": str, "unit": str}]
-
     Returns: [{"kpi_id": uuid, "formula": str, "formula_notes": str}]
     """
     if not OPENAI_API_KEY:
         return []
 
-    # Build the KPI context block
-    kpi_block = ""
-    for i, kpi in enumerate(kpi_list, 1):
-        kpi_block += (
-            f"{i}. KPI: {kpi['name']}
-"
-            f"   Parameter: {kpi['parameter_name']}
-"
-            f"   Description: {kpi.get('description', 'N/A')}
-"
-            f"   Unit: {kpi.get('unit', 'N/A')}
-
-"
-        )
-
-    prompt = f"""You are an expert performance measurement consultant.
-
-Industry: {industry}
-Process: {process_name}
-
-For each KPI below, provide:
-1. A precise MEASUREMENT FORMULA (how to compute it from raw data)
-2. Brief NOTES (assumptions, edge cases, or data considerations)
-
-The formula must be specific enough that a data analyst who has never seen this KPI can compute it from source data. Use standard notation: numerator/denominator, percentages, averages, etc.
-
-KPIs:
-{kpi_block}
-
-Respond in valid JSON array format. Each element must have:
-- "kpi_index" (integer, matching the numbering above)
-- "formula" (string, the measurement formula)
-- "formula_notes" (string, brief assumptions or notes)
-
-Example:
-[
-  {{"kpi_index": 1, "formula": "(Total cases resolved in first contact / Total cases handled) x 100", "formula_notes": "First contact defined as single interaction without transfer or callback. Measure over rolling 30-day window."}},
-  {{"kpi_index": 2, "formula": "Sum of all case durations / Number of cases completed in period", "formula_notes": "Duration measured from case creation to final status change. Excludes cases still open."}}
-]
-
-Return ONLY the JSON array, no other text."""
+    kpi_block = build_kpi_block(kpi_list)
+    prompt = build_prompt(industry, process_name, kpi_block)
 
     try:
         response = httpx.post(
             OPENAI_URL,
             headers={
-                "Authorization": f"Bearer {OPENAI_API_KEY}",
+                "Authorization": "Bearer " + OPENAI_API_KEY,
                 "Content-Type": "application/json",
             },
             json={
@@ -111,5 +121,5 @@ Return ONLY the JSON array, no other text."""
         return output
 
     except Exception as e:
-        print(f"[Formula Generator] OpenAI error: {e}")
+        print("[Formula Generator] OpenAI error: " + str(e))
         return []
