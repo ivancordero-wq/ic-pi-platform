@@ -31,6 +31,7 @@ from app.routes.rho_gate import router as rho_gate_router
 from app.routes.sme_portal import router as sme_portal_router
 from app.routes.theta_gate import router as theta_gate_router
 from app.routes.sme_ranking import router as sme_ranking_router
+from app.routes.formula_generation import router as formula_generation_router
 from app.routes.kpi_weighting import router as kpi_weighting_router
 from app.routes.sme_kpi_ranking import router as sme_kpi_ranking_router
 from app.routes.tau_designation import router as tau_designation_router
@@ -90,6 +91,7 @@ app.include_router(sme_portal_router)         # Screen 4: SME Portal
 app.include_router(rho_gate_router)
 app.include_router(theta_gate_router)
 app.include_router(sme_ranking_router)
+app.include_router(formula_generation_router)
 app.include_router(kpi_weighting_router)
 app.include_router(sme_kpi_ranking_router)
 app.include_router(tau_designation_router)
