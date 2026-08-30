@@ -52,6 +52,15 @@
         </div>
     </div>
 
+    <!-- Generate All Formulas Button -->
+    <div class="flex justify-end mb-4">
+        <button onclick="generateAllFormulas()" id="generateFormulasBtn"
+            class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white text-sm font-semibold rounded-lg transition flex items-center gap-2">
+            <span id="formulaBtnText">Generate All Formulas (AI)</span>
+            <span id="formulaSpinner" class="hidden">Generating...</span>
+        </button>
+    </div>
+    
     <!-- Accordion: One block per parameter -->
     <div class="space-y-3 mb-6">
         {% for block in accordion_data %}
@@ -245,6 +254,35 @@ function saveFormula() {
     };
     fetch('/api/discoveries/kpis/' + id, {method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)})
     .then(r => { if(r.ok) { closeFormulaModal(); location.reload(); } else { alert('Error saving formula'); }});
+}
+</script>
+<script>
+function generateAllFormulas() {
+    var btn = document.getElementById('generateFormulasBtn');
+    var btnText = document.getElementById('formulaBtnText');
+    var spinner = document.getElementById('formulaSpinner');
+    btn.disabled = true;
+    btnText.classList.add('hidden');
+    spinner.classList.remove('hidden');
+    fetch('/discovery/{{ discovery.id }}/generate-formulas', {method: 'POST'})
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.success) {
+                alert('Formulas generated for ' + data.updated + ' of ' + data.total_kpis + ' KPIs. Reloading...');
+                window.location.reload();
+            } else {
+                alert('Error: ' + (data.error || 'Unknown error'));
+                btn.disabled = false;
+                btnText.classList.remove('hidden');
+                spinner.classList.add('hidden');
+            }
+        })
+        .catch(function(err) {
+            alert('Network error: ' + err);
+            btn.disabled = false;
+            btnText.classList.remove('hidden');
+            spinner.classList.add('hidden');
+        });
 }
 </script>
 {% endblock %}
