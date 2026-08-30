@@ -23,57 +23,37 @@ def build_kpi_block(kpi_list):
         lines.append("   Description: " + kpi.get("description", "N/A"))
         lines.append("   Unit: " + kpi.get("unit", "N/A"))
         lines.append("")
-    return "
-".join(lines)
+    return "\n".join(lines)
 
 
 def build_prompt(industry, process_name, kpi_block):
-    return (
-        "You are an expert performance measurement consultant.
-
-"
-        "Industry: " + industry + "
-"
-        "Process: " + process_name + "
-
-"
-        "For each KPI below, provide:
-"
-        "1. A precise MEASUREMENT FORMULA (how to compute it from raw data)
-"
-        "2. Brief NOTES (assumptions, edge cases, or data considerations)
-
-"
-        "The formula must be specific enough that a data analyst who has never "
-        "seen this KPI can compute it from source data. Use standard notation: "
-        "numerator/denominator, percentages, averages, etc.
-
-"
-        "KPIs:
-" + kpi_block + "
-
-"
-        "Respond in valid JSON array format. Each element must have:
-"
-        '- "kpi_index" (integer, matching the numbering above)
-'
-        '- "formula" (string, the measurement formula)
-'
-        '- "formula_notes" (string, brief assumptions or notes)
-
-'
-        "Return ONLY the JSON array, no other text."
-    )
+    parts = []
+    parts.append("You are an expert performance measurement consultant.")
+    parts.append("")
+    parts.append("Industry: " + industry)
+    parts.append("Process: " + process_name)
+    parts.append("")
+    parts.append("For each KPI below, provide:")
+    parts.append("1. A precise MEASUREMENT FORMULA (how to compute it from raw data)")
+    parts.append("2. Brief NOTES (assumptions, edge cases, or data considerations)")
+    parts.append("")
+    parts.append("The formula must be specific enough that a data analyst who has never")
+    parts.append("seen this KPI can compute it from source data. Use standard notation:")
+    parts.append("numerator/denominator, percentages, averages, etc.")
+    parts.append("")
+    parts.append("KPIs:")
+    parts.append(kpi_block)
+    parts.append("")
+    parts.append("Respond in valid JSON array format. Each element must have:")
+    parts.append('- "kpi_index" (integer, matching the numbering above)')
+    parts.append('- "formula" (string, the measurement formula)')
+    parts.append('- "formula_notes" (string, brief assumptions or notes)')
+    parts.append("")
+    parts.append("Return ONLY the JSON array, no other text.")
+    return "\n".join(parts)
 
 
 def generate_formulas_for_kpis(industry, process_name, kpi_list):
-    """
-    Given industry, process, and a list of KPI dicts,
-    call GPT-4o-mini to generate measurement formulas.
-
-    kpi_list: [{"id": uuid, "name": str, "description": str, "parameter_name": str, "unit": str}]
-    Returns: [{"kpi_id": uuid, "formula": str, "formula_notes": str}]
-    """
     if not OPENAI_API_KEY:
         return []
 
@@ -98,7 +78,6 @@ def generate_formulas_for_kpis(industry, process_name, kpi_list):
         response.raise_for_status()
         content = response.json()["choices"][0]["message"]["content"].strip()
 
-        # Parse JSON (handle markdown code blocks if GPT wraps it)
         if content.startswith("```"):
             content = content.split("```")[1]
             if content.startswith("json"):
@@ -107,7 +86,6 @@ def generate_formulas_for_kpis(industry, process_name, kpi_list):
 
         ai_results = json.loads(content)
 
-        # Map back to kpi_ids
         output = []
         for item in ai_results:
             idx = item.get("kpi_index", 0) - 1
