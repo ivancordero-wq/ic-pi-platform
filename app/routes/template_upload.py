@@ -47,7 +47,7 @@ async def upload_template(request: Request, discovery_id: str, file: UploadFile 
 
         # Read uploaded Excel
         contents = await file.read()
-        wb = load_workbook(BytesIO(contents), read_only=True)
+        wb = load_workbook(BytesIO(contents), read_only=False, data_only=True)
 
         # Find the Data Template sheet
         if "Data Template" not in wb.sheetnames:
