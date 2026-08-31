@@ -232,6 +232,10 @@ async def kpi_weighting_view(request: Request, discovery_id: str):
                         "converged": True,
                         "locked": True,
                         "weight": locked_kpi.weight_normalized,
+                        "formula": kpi.formula or "",
+                        "formula_notes": kpi.formula_notes or "",
+                        "data_source": kpi.data_source or "",
+                        "data_scenario": kpi.data_scenario or "",
                         "responses": total_smes,
                     })
                     param_converged += 1
@@ -257,6 +261,10 @@ async def kpi_weighting_view(request: Request, discovery_id: str):
                         "converged": False,
                         "locked": False,
                         "weight": None,
+                        "formula": kpi.formula or "",
+                        "formula_notes": kpi.formula_notes or "",
+                        "data_source": kpi.data_source or "",
+                        "data_scenario": kpi.data_scenario or "",
                         "responses": 0,
                     })
                     param_divergent += 1
@@ -281,6 +289,10 @@ async def kpi_weighting_view(request: Request, discovery_id: str):
                     "converged": converged,
                     "locked": False,
                     "weight": None,
+                    "formula": kpi.formula or "",
+                    "formula_notes": kpi.formula_notes or "",
+                    "data_source": kpi.data_source or "",
+                    "data_scenario": kpi.data_scenario or "",
                     "responses": responses,
                 })
 
