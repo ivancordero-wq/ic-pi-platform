@@ -35,6 +35,7 @@ from app.routes.formula_generation import router as formula_generation_router
 from app.routes.data_template import router as data_template_router
 from app.routes.template_upload import router as template_upload_router
 from app.routes.blueprint1_route import router as blueprint1_router
+from app.routes.delete_discovery import router as delete_discovery_router
 from app.routes.kpi_weighting import router as kpi_weighting_router
 from app.routes.sme_kpi_ranking import router as sme_kpi_ranking_router
 from app.routes.tau_designation import router as tau_designation_router
@@ -98,6 +99,7 @@ app.include_router(formula_generation_router)
 app.include_router(data_template_router)
 app.include_router(template_upload_router)
 app.include_router(blueprint1_router)
+app.include_router(delete_discovery_router)
 app.include_router(kpi_weighting_router)
 app.include_router(sme_kpi_ranking_router)
 app.include_router(tau_designation_router)
