@@ -48,6 +48,7 @@ from app.routes.output_engine import output_engine_router
 # ---------------------------------------------------------------------------
 # Create database tables on startup (dev convenience; use Alembic for prod)
 # ---------------------------------------------------------------------------
+from app.prior_initiatives_model import PriorInitiative
 Base.metadata.create_all(bind=engine)
 # Migration: add assigned_sme_id to tau_designations_v2 if missing
 from sqlalchemy import text
