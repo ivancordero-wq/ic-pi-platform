@@ -10,7 +10,11 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from app.database import SessionLocal
-from app.models import Discovery, Process, Client, SME, EngineResult, ParameterWeight
+from app.models import Discovery, Process, Client, EngineResult, ParameterWeight
+try:
+    from app.models import SME
+except ImportError:
+    SME = None
 from app.auth import decode_access_token
 
 router = APIRouter()
@@ -81,7 +85,7 @@ async def consultant_dashboard(request: Request):
         for disc in discoveries:
             client = db.query(Client).filter(Client.id == disc.client_id).first()
             process = db.query(Process).filter(Process.discovery_id == disc.id).first()
-            sme_count = db.query(SME).filter(SME.discovery_id == disc.id).count()
+            sme_count = db.query(SME).filter(SME.discovery_id == disc.id).count() if SME else 0
 
             forms_completed = compute_forms_completed(disc, db)
             zone = get_zone(disc.id, db)
@@ -118,7 +122,7 @@ async def consultant_dashboard(request: Request):
             "dashboard.html",
             {
                 "request": request,
-                "consultant_name": user_data.get("full_name", "Consultant"),
+                "consultant_name": user_data.get("full_name", user_data.get("sub", "Consultant")),
                 "projects": projects,
                 "active_filter": "All",
             },
