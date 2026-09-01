@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<!-- saved from url=(0124)https://t9017030401.p.clickup-attachments.com/t9017030401/d7551e10-db71-40ef-9895-eef11ae20970/blueprint1_pdf.html?view=open -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <title>IC-π™ Blueprint 1 (Phase 1) — {{ client_name }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+            background: #fefcf9;
+            color: #1a1a2e;
+            line-height: 1.6;
+            padding: 40px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        h1 { font-size: 2.2rem; color: #0f0f23; margin-bottom: 8px; }
+        h2 { font-size: 1.5rem; color: #1a1a2e; margin-top: 48px; margin-bottom: 16px; border-bottom: 2px solid #e8e4df; padding-bottom: 8px; }
+        h3 { font-size: 1.1rem; color: #2d2d4e; margin-top: 24px; margin-bottom: 8px; }
+        p { margin-bottom: 12px; }
+        table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.9rem; }
+        th { background: #1a1a2e; color: white; padding: 10px 12px; text-align: left; }
+        td { padding: 8px 12px; border-bottom: 1px solid #e8e4df; }
+        tr:nth-child(even) { background: #f8f6f3; }
+        .cover { text-align: center; padding: 80px 0; border-bottom: 3px solid #1a1a2e; margin-bottom: 48px; }
+        .cover h1 { font-size: 2.8rem; }
+        .cover .subtitle { color: #555; font-size: 1.1rem; margin-top: 12px; }
+        .cover .meta { color: #888; font-size: 0.9rem; margin-top: 24px; }
+        .phase-badge { display: inline-block; padding: 6px 16px; border-radius: 6px; font-weight: bold; font-size: 1.1rem; background: #dbeafe; color: #1e40af; border: 2px solid #93c5fd; }
+        .weight-bar { background: #e8e4df; border-radius: 4px; height: 12px; position: relative; }
+        .weight-fill { background: #4f46e5; height: 100%; border-radius: 4px; }
+        .formula-box { background: #f0fdf4; border-left: 4px solid #16a34a; padding: 12px 16px; margin: 8px 0; }
+        .formula-text { font-family: 'Courier New', monospace; color: #166534; font-weight: bold; }
+        .notes-text { color: #555; font-size: 0.85rem; font-style: italic; }
+        .brief-box { background: #eff6ff; border-left: 4px solid #3b82f6; padding: 12px 16px; margin: 8px 0; }
+        .section-num { color: #4f46e5; font-weight: bold; margin-right: 8px; }
+        .footer { text-align: center; color: #888; font-size: 0.8rem; margin-top: 64px; padding-top: 24px; border-top: 1px solid #e8e4df; }
+        @media print { body { padding: 20px; } .cover { padding: 40px 0; } }
+    </style>
+</head>
+<body class="clickup-chrome-ext_installed" data-new-gr-c-s-check-loaded="14.1325.0" data-gr-ext-installed="">
+
+<!-- SECTION 1: Cover Page -->
+<div class="cover">
+    <p style="color: #4f46e5; font-weight: bold; letter-spacing: 2px;">IC-π™ BLUEPRINT 1</p>
+    <p style="color: #1e40af; font-size: 0.9rem; letter-spacing: 1px;">PHASE 1: THE MODEL</p>
+    <h1>{{ process_name }}</h1>
+    <p class="subtitle">{{ client_name }}</p>
+    <p class="meta">Generated: {{ generated_at }} | Discovery ID: {{ discovery.id|string|truncate(8, True, '') }}...</p>
+    <p class="meta">IC Commerce and Consulting | Patent Pending</p>
+    <p style="margin-top: 24px;"><span class="phase-badge">Phase 1 Deliverable</span></p>
+</div>
+
+<!-- SECTION 2: Executive Summary (Model Overview, no scores) -->
+<h2><span class="section-num">2.</span> Executive Summary</h2>
+<p>This Blueprint documents the <strong>performance model</strong> constructed during IC-π™ Discovery Phase 1 for <strong>{{ process_name }}</strong> at {{ client_name }}.</p>
+<p>The model defines:</p>
+<ul style="margin-left: 24px; margin-bottom: 12px;">
+    <li>Which parameters govern process performance (ρ validated)</li>
+    <li>How much each parameter matters (θ validated weights)</li>
+    <li>Which KPIs measure each parameter (θ Level 2 validated)</li>
+    <li>How to compute each KPI (AI-generated measurement formulas)</li>
+    <li>Which KPIs have non-negotiable floors (τ trip wires)</li>
+</ul>
+<p><strong>Next step:</strong> The client's data team uses the measurement formulas and the Standard Data Template provided with this Blueprint to populate actual KPI values. Once populated, IC-π runs Phase 2 (measurement, zone classification, and AI-generated improvement prescriptions).</p>
+
+<!-- SECTION 3: Methodology Overview -->
+<h2><span class="section-num">3.</span> Methodology Overview</h2>
+<p>IC-π™ (Integrated Capability Performance Index) is a proprietary performance engineering technology that constructs a process-specific mathematical model through four governed mechanisms:</p>
+<table>
+    <tbody><tr><th>Mechanism</th><th>Purpose</th><th>Method</th></tr>
+    <tr><td><strong>ρ (Rho)</strong></td><td>Parameter Relevance</td><td>Algorithmic voting gate (no human override)</td></tr>
+    <tr><td><strong>θ (Theta)</strong></td><td>Weight Validation</td><td>Modified Delphi with algorithmic convergence</td></tr>
+    <tr><td><strong>τ (Tau)</strong></td><td>Trip Wire Floors</td><td>Designated authority calibration + leadership validation</td></tr>
+    <tr><td><strong>α (Alpha)</strong></td><td>Kill Switch</td><td>Non-compensatory breach enforcement</td></tr>
+</tbody></table>
+<p><strong>Formula:</strong> NPI = Σ[W_i × α_i × Σ(w_ij × KPI_ij)]</p>
+
+<!-- SECTION 4: SME Panel Composition -->
+<h2><span class="section-num">4.</span> SME Panel Composition</h2>
+
+    {% for sme in smes %}
+    
+    {% endfor %}
+<table>
+    <tbody><tr><th>Name</th><th>Email</th><th>Role</th></tr><tr><td>{{ sme.name }}</td><td>{{ sme.email }}</td><td>{{ sme.role }}</td></tr></tbody></table>
+<p><em>{{ smes|length }} Subject Matter Experts participated via anonymous magic-link access (zero registration).</em></p>
+
+<!-- SECTION 5: ρ Gate Results -->
+<h2><span class="section-num">5.</span> ρ Gate Results (Parameter Universe)</h2>
+<p>{{ parameters|length }} parameters survived the relevance gate and were carried into weighting.</p>
+
+    {% for param in parameters %}
+    
+    {% endfor %}
+<table>
+    <tbody><tr><th>#</th><th>Parameter</th><th>Source</th><th>W_i</th></tr><tr>
+        <td>{{ loop.index }}</td>
+        <td>{{ param.name }}</td>
+        <td>{{ param.source }}</td>
+        <td>{{ param.weight }}%</td>
+    </tr></tbody></table>
+
+<!-- SECTION 6: θ Validation — Parameter Weights -->
+<h2><span class="section-num">6.</span> θ Validation: Parameter Weights (W_i)</h2>
+<p>Weights derived via Modified Delphi Protocol (forced ordinal ranking, algorithmic convergence, max 3 rounds).</p>
+{% for param in parameters %}
+<div style="display: flex; align-items: center; gap: 12px; margin: 8px 0;">
+    <span style="width: 200px; font-size: 0.9rem;">{{ param.name }}</span>
+    <div class="weight-bar" style="flex: 1;">
+        <div class="weight-fill" style="width: {{ param.weight }}%;"></div>
+    </div>
+    <span style="width: 50px; text-align: right; font-weight: bold; font-size: 0.9rem;">{{ param.weight }}%</span>
+</div>
+{% endfor %}
+
+<!-- SECTION 7: θ Validation — KPI Weights -->
+<h2><span class="section-num">7.</span> θ Validation: KPI Weights (w_ij)</h2>
+{% for param in parameters %}
+{% if param.kpis %}
+<h3>{{ param.name }} (W_i = {{ param.weight }}%)</h3>
+
+    {% for kpi in param.kpis %}
+    
+    {% endfor %}
+<table>
+    <tbody><tr><th>KPI</th><th>w_ij</th></tr><tr><td>{{ kpi.name }}</td><td>{{ kpi.weight }}%</td></tr></tbody></table>
+{% endif %}
+{% endfor %}
+
+<!-- SECTION 8: τ Designation Summary -->
+<h2><span class="section-num">8.</span> τ Designation Summary (Trip Wires)</h2>
+{% if tau_designations %}
+
+    {% for td in tau_designations %}
+    
+    {% endfor %}
+<table>
+    <tbody><tr><th>KPI</th><th>Floor (τ)</th><th>Direction</th><th>Designated By</th></tr><tr>
+        <td>{{ td.kpi_name }}</td>
+        <td><strong>{{ td.floor }}</strong></td>
+        <td>{{ td.direction }}</td>
+        <td>{{ td.designated_by }}</td>
+    </tr></tbody></table>
+<p><em>If any KPI score breaches its τ floor at run-time, the α kill switch fires and the parameter collapses to RED.</em></p>
+{% else %}
+<p>No trip wires designated for this Discovery.</p>
+{% endif %}
+
+<!-- SECTION 9: Measurement Formulas (NEW for Blueprint 1) -->
+<h2><span class="section-num">9.</span> Measurement Formulas</h2>
+<p>For each KPI, IC-π™ provides a precise measurement formula generated by AI-Hybrid analysis (GPT-4o-mini) and validated by the SME panel. These formulas tell the client's data team exactly <strong>how to compute</strong> each KPI from source data.</p>
+
+{% for param in parameters %}
+{% if param.kpis %}
+<h3>{{ param.name }}</h3>
+{% for kpi in param.kpis %}
+<div class="formula-box">
+    <p style="font-weight: bold; margin-bottom: 4px;">{{ kpi.name }}</p>
+    {% if kpi.formula %}
+    <p class="formula-text">{{ kpi.formula }}</p>
+    {% else %}
+    <p class="formula-text" style="color: #888;">Measurement specification pending</p>
+    {% endif %}
+    {% if kpi.description %}
+    <p style="color: #666; font-size: 0.85rem;">{{ kpi.description }}</p>
+    {% endif %}
+    {% if kpi.formula_notes %}
+    <p class="notes-text">Notes: {{ kpi.formula_notes }}</p>
+    {% endif %}
+</div>
+{% endfor %}
+{% endif %}
+{% endfor %}
+
+<!-- SECTION 10: Data Collection Brief (NEW for Blueprint 1) -->
+<h2><span class="section-num">10.</span> Data Collection Brief</h2>
+<p>This section provides instructions for the client's data team to populate the Standard Data Template.</p>
+
+<div class="brief-box">
+    <p><strong>What to do:</strong></p>
+    <ol style="margin-left: 24px; margin-bottom: 12px;">
+        <li>Open the Standard Data Template (Excel file provided separately)</li>
+        <li>For each KPI row, read the Formula column (Section 9 above)</li>
+        <li>Compute the raw value from your data systems using that formula</li>
+        <li>Enter the raw value in the "Raw Value" column (use the unit shown)</li>
+        <li>Fill in "Measurement Period" (e.g., Q3 2026)</li>
+        <li>Fill in "Evidence Source" (which system the data came from)</li>
+        <li>Return the completed template to your IC-π consultant</li>
+    </ol>
+</div>
+
+<div class="brief-box">
+    <p><strong>Important notes:</strong></p>
+    <ul style="margin-left: 24px; margin-bottom: 12px;">
+        <li>Enter RAW values only. Do NOT normalize or scale. IC-π handles all scoring internally.</li>
+        <li>If a KPI cannot be measured, enter "N/A" and explain in the Notes column.</li>
+        <li>KPIs marked "N/A" may become prescribed projects in Phase 2 (building the data pipeline).</li>
+        <li>The same template will be re-used for each measurement cycle (Stewardship).</li>
+        <li>Return the file in .xlsx (Excel) format.</li>
+    </ul>
+</div>
+
+<h3>KPI Summary Table</h3>
+
+    {% for param in parameters %}
+    {% for kpi in param.kpis %}
+    
+    {% endfor %}
+    {% endfor %}
+<table>
+    <tbody><tr><th>Parameter</th><th>KPI</th><th>Formula</th><th>Unit</th></tr><tr>
+        <td>{{ param.name }}</td>
+        <td>{{ kpi.name }}</td>
+        <td style="font-family: monospace; font-size: 0.8rem;">{{ kpi.formula or 'Pending' }}</td>
+        <td>{{ kpi.unit or '' }}</td>
+    </tr></tbody></table>
+
+<!-- Footer -->
+<div class="footer">
+    <p>IC-π™ Performance Index | IC Commerce and Consulting | Patent Pending</p>
+    <p>Blueprint 1 (Phase 1: The Model) | This document is confidential and intended for {{ client_name }} leadership only.</p>
+    <p style="margin-top: 8px; font-size: 0.75rem;">The Standard Data Template (Excel) is provided as a separate file accompanying this Blueprint.</p>
+</div>
+
+
+
+</body><grammarly-desktop-integration data-grammarly-shadow-root="true" style="visibility: visible !important;"><template shadowrootmode="open"><style>
+      div.grammarly-desktop-integration {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select:none;
+        user-select:none;
+      }
+
+      div.grammarly-desktop-integration:before {
+        content: attr(data-content);
+      }
+    </style><div aria-label="grammarly-integration" role="group" tabindex="-1" class="grammarly-desktop-integration" data-content="{&quot;mode&quot;:&quot;full&quot;,&quot;isActive&quot;:true,&quot;isUserDisabled&quot;:false}"></div></template></grammarly-desktop-integration></html>
