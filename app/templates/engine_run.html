@@ -2,6 +2,12 @@
 
 {% block title %}Engine Run: Results{% endblock %}
 
+{% block head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+{% endblock %}
+
 {% block content %}
 <div class="max-w-6xl mx-auto px-4 py-8">
 
@@ -48,30 +54,50 @@
     </div>
 
     <!-- NPI Formula Visual -->
-    <div class="bg-slate-800/60 border border-cyan-700/40 rounded-lg p-4 mb-6">
+    <div class="bg-slate-800/60 border border-cyan-700/40 rounded-lg p-6 mb-6">
         <h3 class="text-sm font-semibold text-cyan-300 uppercase tracking-wide mb-3">NPI Formula Breakdown</h3>
-        <p class="text-slate-400 text-xs mb-3">NPI = SUM[ W_i x alpha_i x SUM(w_ij x KPI_ij) ]</p>
-        <div class="space-y-2">
+        <div class="bg-slate-900/50 rounded-lg p-4 mb-4 text-center" id="npi-formula"></div>
+        <script>
+            katex.render("\\text{NPI} = \\sum_{i=1}^{n} \\left[ W_i \\times \\alpha_i \\times \\sum_{j=1}^{m_i} \\left( w_{ij} \\times \\text{KPI}_{ij} \\right) \\right]", document.getElementById("npi-formula"), {displayMode: true, throwOnError: false});
+        </script>
+        <div class="space-y-3">
             {% for pr in result.parameter_results %}
-            <div class="flex items-center gap-2 text-sm">
-                <span class="text-white font-medium w-48">{{ pr.name }}</span>
-                <span class="text-slate-400">=</span>
-                <span class="text-cyan-300 font-mono">{{ pr.W_i }}%</span>
-                <span class="text-slate-500">x</span>
-                <span class="{% if pr.alpha == 0 %}text-red-400{% else %}text-green-400{% endif %} font-mono">{{ pr.alpha }}</span>
-                <span class="text-slate-500">x</span>
-                <span class="text-yellow-300 font-mono">{{ pr.composite_score }}%</span>
-                <span class="text-slate-500">=</span>
-                <span class="text-cyan-400 font-bold font-mono">{{ pr.contribution }}%</span>
-                {% if pr.signal == 'KILL' %}
-                <span class="px-1.5 py-0.5 rounded text-xs bg-red-900/50 text-red-300 ml-2">KILLED</span>
-                {% endif %}
+            <div class="bg-slate-900/50 rounded-lg p-3">
+                <div class="flex items-center justify-between mb-1">
+                    <span class="text-white font-semibold">{{ pr.name }}</span>
+                    <span class="text-cyan-400 font-bold font-mono text-lg">{{ pr.contribution }}%</span>
+                </div>
+                <div class="flex items-center gap-1 text-xs font-mono">
+                    <span class="text-slate-500">W_i=</span><span class="text-cyan-300">{{ "%.2f"|format(pr.W_i / 100) }}</span>
+                    <span class="text-slate-600 mx-1">x</span>
+                    <span class="text-slate-500">alpha=</span><span class="{% if pr.alpha == 0 %}text-red-400 font-bold{% else %}text-green-400{% endif %}">{{ pr.alpha }}</span>
+                    <span class="text-slate-600 mx-1">x</span>
+                    <span class="text-slate-500">composite=</span><span class="text-yellow-300">{{ "%.2f"|format(pr.composite_score / 100) }}</span>
+                    <span class="text-slate-600 mx-1">=</span>
+                    <span class="text-cyan-400 font-bold">{{ "%.4f"|format(pr.contribution / 100) }}</span>
+                    {% if pr.signal == 'KILL' %}
+                    <span class="px-1.5 py-0.5 rounded text-xs bg-red-900/50 text-red-300 ml-2">COLLAPSED</span>
+                    {% endif %}
+                </div>
+                <div class="flex items-center gap-1 text-xs mt-1">
+                    <span class="text-slate-600">Weight</span>
+                    <span class="text-slate-600">|</span>
+                    <span class="text-slate-600">Kill Switch</span>
+                    <span class="text-slate-600">|</span>
+                    <span class="text-slate-600">Weighted KPI Composite</span>
+                    <span class="text-slate-600">|</span>
+                    <span class="text-slate-600">Contribution to NPI</span>
+                </div>
             </div>
             {% endfor %}
-            <div class="border-t border-slate-700 pt-2 mt-2 flex items-center gap-2 text-sm">
-                <span class="text-white font-bold w-48">TOTAL NPI</span>
-                <span class="text-slate-400">=</span>
-                <span class="text-3xl font-bold {% if result.zone == 'GREEN' %}text-green-400{% elif result.zone == 'YELLOW' %}text-yellow-400{% else %}text-red-400{% endif %}">{{ result.npi_score }}%</span>
+        </div>
+        <div class="border-t border-cyan-700/30 pt-4 mt-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-white font-bold text-sm">NORMALIZED PERFORMANCE INDEX</p>
+                    <p class="text-slate-500 text-xs font-mono">Sum of all parameter contributions</p>
+                </div>
+                <span class="text-4xl font-bold font-mono {% if result.zone == 'GREEN' %}text-green-400{% elif result.zone == 'YELLOW' %}text-yellow-400{% else %}text-red-400{% endif %}">{{ "%.1f"|format(result.npi_score) }}%</span>
             </div>
         </div>
     </div>
