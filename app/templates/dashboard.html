@@ -123,12 +123,13 @@
             {% set form_names = ['Setup', 'Rho Gate', 'Weights', 'KPI Map', 'Tau Set', 'Scoring', 'Engine'] %}
             {% for i in range(7) %}
             <div class="flex-1 flex flex-col items-center">
-              <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold
-                {% if i < project.forms_completed %}bg-emerald-600 text-white
-                {% elif i == project.forms_completed %}bg-amber-500 text-white ring-2 ring-amber-300
+              {% set step_urls = ['/project/' + project.id|string + '/setup', '/discovery/' + project.discovery_id|string + '/rho-gate', '/discovery/' + project.discovery_id|string + '/theta-gate', '/discovery/' + project.discovery_id|string + '/kpi-weighting', '/discovery/' + project.discovery_id|string + '/tau-designation', '/discovery/' + project.discovery_id|string + '/kpi-scoring', '/discovery/' + project.discovery_id|string + '/engine-run'] %}
+              <a href="{{ step_urls[i] }}" class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold
+                {% if i < project.forms_completed %}bg-emerald-600 text-white hover:bg-emerald-500
+                {% elif i == project.forms_completed %}bg-amber-500 text-white ring-2 ring-amber-300 hover:bg-amber-400
                 {% else %}bg-slate-700 text-slate-500{% endif %}">
                 {{ i + 1 }}
-              </div>
+              </a>
               <p class="text-xs mt-1 {% if i < project.forms_completed %}text-emerald-400{% elif i == project.forms_completed %}text-amber-300{% else %}text-slate-500{% endif %}">
                 {{ form_names[i] }}
               </p>
@@ -156,7 +157,7 @@
               <span class="text-white ml-1">{{ project.tau_status }}</span>
             </div>
             <div class="ml-auto">
-              <a href="#" class="text-emerald-400 hover:text-emerald-300 font-medium">
+              <a href="/discovery/{{ project.discovery_id }}/kpi-weighting" class="text-emerald-400 hover:text-emerald-300 font-medium">
                 Open Project &rarr;
               </a>
             </div>
