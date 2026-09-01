@@ -76,6 +76,15 @@
                     📄 Output
                 </a>
             </div>
+            <form method="POST" action="/discovery/{{ d.id }}/delete"
+                onsubmit="return confirm('Delete this Discovery and all related data?
+            This cannot be undone.');"
+                  class="mt-4">
+                <button type="submit"
+                        class="px-3 py-1 rounded bg-red-700 hover:bg-red-600 text-white text-xs font-semibold">
+                    Delete Discovery
+                </button>
+            </form>
         </div>
         {% endfor %}
     </div>
