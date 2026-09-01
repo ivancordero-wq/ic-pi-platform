@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>IC-pi Blueprint 1 (Phase 1)</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+            background: #fefcf9;
+            color: #1a1a2e;
+            line-height: 1.6;
+            padding: 40px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        h1 { font-size: 2.2rem; color: #0f0f23; margin-bottom: 8px; }
+        h2 { font-size: 1.5rem; color: #1a1a2e; margin-top: 48px; margin-bottom: 16px; border-bottom: 2px solid #e8e4df; padding-bottom: 8px; }
+        h3 { font-size: 1.1rem; color: #2d2d4e; margin-top: 24px; margin-bottom: 8px; }
+        p { margin-bottom: 12px; }
+        table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.9rem; }
+        th { background: #1a1a2e; color: white; padding: 10px 12px; text-align: left; }
+        td { padding: 8px 12px; border-bottom: 1px solid #e8e4df; }
+        tr:nth-child(even) { background: #f8f6f3; }
+        .cover { text-align: center; padding: 80px 0; border-bottom: 3px solid #1a1a2e; margin-bottom: 48px; }
+        .cover h1 { font-size: 2.8rem; }
+        .cover .subtitle { color: #555; font-size: 1.1rem; margin-top: 12px; }
+        .cover .meta { color: #888; font-size: 0.9rem; margin-top: 24px; }
+        .phase-badge { display: inline-block; padding: 6px 16px; border-radius: 6px; font-weight: bold; font-size: 1.1rem; background: #dbeafe; color: #1e40af; border: 2px solid #93c5fd; }
+        .weight-bar { background: #e8e4df; border-radius: 4px; height: 12px; position: relative; }
+        .weight-fill { background: #4f46e5; height: 100%; border-radius: 4px; }
+        .formula-box { background: #f0fdf4; border-left: 4px solid #16a34a; padding: 12px 16px; margin: 8px 0; }
+        .formula-text { font-family: 'Courier New', monospace; color: #166534; font-weight: bold; }
+        .notes-text { color: #555; font-size: 0.85rem; font-style: italic; }
+        .brief-box { background: #eff6ff; border-left: 4px solid #3b82f6; padding: 12px 16px; margin: 8px 0; }
+        .section-num { color: #4f46e5; font-weight: bold; margin-right: 8px; }
+        .footer { text-align: center; color: #888; font-size: 0.8rem; margin-top: 64px; padding-top: 24px; border-top: 1px solid #e8e4df; }
+    </style>
+</head>
+<body>
+
+<div class="cover">
+    <p style="color: #4f46e5; font-weight: bold; letter-spacing: 2px;">IC-pi BLUEPRINT 1</p>
+    <p style="color: #1e40af; font-size: 0.9rem; letter-spacing: 1px;">PHASE 1: THE MODEL</p>
+    <h1>{{ process_name }}</h1>
+    <p class="subtitle">{{ client_name }}</p>
+    <p class="meta">Generated: {{ generated_at }}</p>
+    <p class="meta">IC Commerce and Consulting | Patent Pending</p>
+    <p style="margin-top: 24px;"><span class="phase-badge">Phase 1 Deliverable</span></p>
+</div>
+
+<h2><span class="section-num">2.</span> Executive Summary</h2>
+<p>This Blueprint documents the <strong>performance model</strong> constructed during IC-pi Discovery Phase 1 for <strong>{{ process_name }}</strong> at {{ client_name }}.</p>
+<p>The model defines which parameters govern process performance, how much each matters, which KPIs measure each parameter, how to compute each KPI, and which KPIs have non-negotiable floors.</p>
+<p><strong>Next step:</strong> The client data team uses the measurement formulas and Standard Data Template to populate actual KPI values. Once populated, IC-pi runs Phase 2.</p>
+
+<h2><span class="section-num">3.</span> Methodology Overview</h2>
+<p>IC-pi constructs a process-specific mathematical model through four governed mechanisms:</p>
+<table>
+    <tr><th>Mechanism</th><th>Purpose</th><th>Method</th></tr>
+    <tr><td><strong>rho</strong></td><td>Parameter Relevance</td><td>Algorithmic voting gate</td></tr>
+    <tr><td><strong>theta</strong></td><td>Weight Validation</td><td>Modified Delphi with algorithmic convergence</td></tr>
+    <tr><td><strong>tau</strong></td><td>Trip Wire Floors</td><td>Designated authority calibration + leadership validation</td></tr>
+    <tr><td><strong>alpha</strong></td><td>Kill Switch</td><td>Non-compensatory breach enforcement</td></tr>
+</table>
+
+<h2><span class="section-num">4.</span> SME Panel Composition</h2>
+<table>
+    <tr><th>Name</th><th>Email</th><th>Role</th></tr>
+    {% for sme in smes %}
+    <tr><td>{{ sme.name }}</td><td>{{ sme.email }}</td><td>{{ sme.role }}</td></tr>
+    {% endfor %}
+</table>
+
+<h2><span class="section-num">5.</span> Parameter Universe</h2>
+<p>{{ parameters|length }} parameters survived the relevance gate.</p>
+<table>
+    <tr><th>#</th><th>Parameter</th><th>Source</th><th>W_i</th></tr>
+    {% for param in parameters %}
+    <tr><td>{{ loop.index }}</td><td>{{ param.name }}</td><td>{{ param.source }}</td><td>{{ param.weight }}%</td></tr>
+    {% endfor %}
+</table>
+
+<h2><span class="section-num">6.</span> Parameter Weights (W_i)</h2>
+{% for param in parameters %}
+<div style="display: flex; align-items: center; gap: 12px; margin: 8px 0;">
+    <span style="width: 200px; font-size: 0.9rem;">{{ param.name }}</span>
+    <div class="weight-bar" style="flex: 1;">
+        <div class="weight-fill" style="width: {{ param.weight }}%;"></div>
+    </div>
+    <span style="width: 50px; text-align: right; font-weight: bold; font-size: 0.9rem;">{{ param.weight }}%</span>
+</div>
+{% endfor %}
+
+<h2><span class="section-num">7.</span> KPI Weights (w_ij)</h2>
+{% for param in parameters %}
+{% if param.kpis %}
+<h3>{{ param.name }} (W_i = {{ param.weight }}%)</h3>
+<table>
+    <tr><th>KPI</th><th>w_ij</th></tr>
+    {% for kpi in param.kpis %}
+    <tr><td>{{ kpi.name }}</td><td>{{ kpi.weight }}%</td></tr>
+    {% endfor %}
+</table>
+{% endif %}
+{% endfor %}
+<h2><span class="section-num">8.</span> Tau Designation Summary</h2>
+{% if tau_designations %}
+<table>
+    <tr><th>KPI</th><th>Floor</th><th>Direction</th><th>Designated By</th></tr>
+    {% for td in tau_designations %}
+    <tr><td>{{ td.kpi_name }}</td><td><strong>{{ td.floor }}</strong></td><td>{{ td.direction }}</td><td>{{ td.designated_by }}</td></tr>
+    {% endfor %}
+</table>
+{% else %}
+<p>No trip wires designated for this Discovery.</p>
+{% endif %}
+
+<h2><span class="section-num">9.</span> Measurement Formulas</h2>
+<p>For each KPI, IC-pi provides a precise measurement formula. These tell the data team exactly how to compute each KPI from source data.</p>
+{% for param in parameters %}
+{% if param.kpis %}
+<h3>{{ param.name }}</h3>
+{% for kpi in param.kpis %}
+<div class="formula-box">
+    <p style="font-weight: bold; margin-bottom: 4px;">{{ kpi.name }}</p>
+    {% if kpi.formula %}
+    <p class="formula-text">{{ kpi.formula }}</p>
+    {% else %}
+    <p class="formula-text" style="color: #888;">Measurement specification pending</p>
+    {% endif %}
+    {% if kpi.description %}
+    <p style="color: #666; font-size: 0.85rem;">{{ kpi.description }}</p>
+    {% endif %}
+    {% if kpi.formula_notes %}
+    <p class="notes-text">Notes: {{ kpi.formula_notes }}</p>
+    {% endif %}
+</div>
+{% endfor %}
+{% endif %}
+{% endfor %}
+
+<h2><span class="section-num">10.</span> Data Collection Brief</h2>
+<p>Instructions for the client data team to populate the Standard Data Template.</p>
+<div class="brief-box">
+    <p><strong>What to do:</strong></p><ol style="margin-left: 24px; margin-bottom: 12px;">
+        <li>Open the Standard Data Template (Excel file provided separately)</li>
+        <li>For each KPI row, read the Formula column (Section 9 above)</li>
+        <li>Compute the raw value from your data systems using that formula</li>
+        <li>Enter the raw value in the Raw Value column (use the unit shown)</li>
+        <li>Fill in Measurement Period</li>
+        <li>Fill in Evidence Source (which system the data came from)</li>
+        <li>Return the completed template to your IC-pi consultant</li>
+    </ol>
+</div>
+<div class="brief-box">
+    <p><strong>Important:</strong></p><ul style="margin-left: 24px; margin-bottom: 12px;">
+        <li>Enter RAW values only. Do NOT normalize or scale.</li>
+        <li>If a KPI cannot be measured, enter N/A and explain in Notes.</li>
+        <li>The same template will be re-used for each measurement cycle.</li>
+        <li>Return the file in .xlsx (Excel) format.</li>
+    </ul>
+</div>
+
+<h3>KPI Summary Table</h3>
+<table>
+    <tr><th>Parameter</th><th>KPI</th><th>Formula</th><th>Unit</th></tr>
+    {% for param in parameters %}
+    {% for kpi in param.kpis %}
+    <tr>
+        <td>{{ param.name }}</td>
+        <td>{{ kpi.name }}</td>
+        <td style="font-family: monospace; font-size: 0.8rem;">{{ kpi.formula or 'Pending' }}</td>
+        <td>{{ kpi.unit or '' }}</td>
+    </tr>
+    {% endfor %}
+    {% endfor %}
+</table>
+
+<div class="footer">
+    <p>IC-pi Performance Index | IC Commerce and Consulting | Patent Pending</p>
+    <p>Blueprint 1 (Phase 1: The Model) | Confidential</p>
+</div>
+
+</body>
+</html>
