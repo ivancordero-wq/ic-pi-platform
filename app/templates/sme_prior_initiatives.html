@@ -16,7 +16,7 @@
         <p class="text-slate-400 text-sm mt-2"><strong class="text-white">No prior action</strong> is a valid answer. Please report only what you know.</p>
     </div>
 
-    <form method="POST" action="https://t9017030401.p.clickup-attachments.com/sme/prior-initiatives/%7B%7B%20token%20%7D%7D">
+        <form method="POST" action="/sme/prior-initiatives/{{ token }}">
         {% for parameter in parameters %}
         <section class="mb-8">
             <h2 class="text-lg font-semibold text-white border-b border-slate-700 pb-2 mb-4">{{ parameter.name }}</h2>
