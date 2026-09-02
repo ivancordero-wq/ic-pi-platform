@@ -9,7 +9,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from app.database import SessionLocal
-from app.models import Discovery, Process, Parameter, KPI, SME
+from app.models import Discovery, Process, Parameter, KPI, SME, SMEVote
 from app.prior_initiatives_model import PriorInitiative
 from app.routes.sme_portal import decode_sme_token
 
