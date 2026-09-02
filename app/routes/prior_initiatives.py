@@ -34,6 +34,13 @@ def get_context(token):
             return None
 
         parameters = db.query(Parameter).filter(Parameter.process_id == process.id).all()
+
+        # Keep only parameters that received at least one YES vote in the rho gate
+        param_ids = [p.id for p in parameters]
+        all_votes = db.query(SMEVote).filter(SMEVote.parameter_id.in_(param_ids)).all()
+        survivor_ids = {vote.parameter_id for vote in all_votes if vote.relevant is True}
+        parameters = [p for p in parameters if p.id in survivor_ids]
+
         parameter_data = []
         for parameter in parameters:
             kpis = db.query(KPI).filter(KPI.parameter_id == parameter.id).all()
