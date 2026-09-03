@@ -22,6 +22,7 @@ from app.models import (
     ParameterWeight, KPIWeightLocked, TauDesignation, EngineResult, KPIAnchor
 )
 from app.auth import decode_access_token
+from app.prior_initiatives_model import PriorInitiative
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
@@ -299,6 +300,39 @@ def compute_npi(process_id, db):
                 top_gaps = prescriptions[:3]
 
             for gap in top_gaps:
+                param_ids = [pw.parameter_id for pw in param_weights]
+                kpi_row = db.query(KPI).filter(
+                    KPI.name == gap["kpi"],
+                    KPI.parameter_id.in_(param_ids),
+                ).first()
+
+                history_text = ""
+                if kpi_row is not None:
+                    priors = db.query(PriorInitiative).filter(
+                        PriorInitiative.kpi_id == kpi_row.id
+                    ).all()
+                    if priors:
+                        labels = {
+                            "failed": "was tried and DID NOT WORK",
+                            "partial": "was tried and only PARTIALLY worked",
+                            "successful": "worked but needs reinforcement",
+                        }
+                        lines = []
+                        for p in priors:
+                            when = " (" + p.tried_when + ")" if p.tried_when else ""
+                            lines.append(
+                                "- " + p.description + when + " -- this "
+                                + labels.get(p.outcome_type, "was tried")
+                                + ". Reported outcome: " + (p.outcome or "not stated")
+                            )
+                        history_text = (
+                            " IMPORTANT: the organization has ALREADY attempted the following "
+                            "on this KPI: " + " ".join(lines)
+                            + " Do NOT propose repeating any of these. Propose different "
+                            "approaches that address why the earlier attempts failed or faded, "
+                            "and state briefly how each new project differs from what was "
+                            "already tried."
+                        )
                 prompt = (
                     f"You are a senior management consultant specializing in process improvement. "
                     f"A client is running a process called '{process.name}'. "
@@ -308,6 +342,7 @@ def compute_npi(process_id, db):
                     f"Each project should be specific, actionable, and name what will be done "
                     f"(not abstract like 'improve this KPI'). "
                     f"Format: one project per line, starting with a dash. Keep each under 40 words."
+                    + history_text
                 )
                 response = client.chat.completions.create(
                     model="gpt-4o-mini",
@@ -326,8 +361,10 @@ def compute_npi(process_id, db):
                     "weighted_gap": gap.get("weighted_gap", 0),
                     "projects": ai_text,
                 })
-        except Exception:
-            pass
+        except Exception as exc:
+            import traceback
+            print("PRESCRIPTION AI FAILED:", repr(exc))
+            traceback.print_exc()
     return {
         "npi_score": npi_score,
         "zone": zone,
