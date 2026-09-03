@@ -161,6 +161,20 @@
     </div>
 
     <!-- Prescriptions -->
+    {% if result.ai_prescriptions %}
+        <div class="bg-navy-800 rounded-xl p-6 mb-6 border border-purple-500/30">
+          <h3 class="text-lg font-semibold text-purple-300 mb-4">AI-Suggested Improvement Projects</h3>
+          {% for ai in result.ai_prescriptions %}
+          <div class="mb-5 pb-5 border-b border-navy-700 last:border-0 last:mb-0 last:pb-0">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-xs px-2 py-1 rounded bg-purple-500/20 text-purple-300 font-medium">{{ ai.kpi }}</span>
+              <span class="text-xs text-slate-400">in {{ ai.parameter }} &middot; W_i {{ ai.W_i }}% &middot; w_ij {{ ai.w_ij }}% &middot; score {{ ai.score }}%</span>
+            </div>
+            <div class="text-sm text-slate-200 whitespace-pre-line">{{ ai.projects }}</div>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
     {% if result.prescriptions %}
     <div class="bg-slate-800/40 rounded-lg p-4 mb-6">
         <h3 class="text-white font-semibold mb-3">AI-Generated Prescriptions</h3>
