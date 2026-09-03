@@ -161,9 +161,9 @@
     </div>
 
     <!-- Prescriptions -->
-    {% if result.ai_prescriptions %}
+    {% if result.prescriptions %}
         <div class="bg-navy-800 rounded-xl p-6 mb-6 border border-purple-500/30">
-          <h3 class="text-lg font-semibold text-purple-300 mb-4">AI-Suggested Improvement Projects</h3>
+          <h3 class="text-lg font-semibold text-purple-300 mb-4">Gap Diagnosis (IC-π Engine)</h3>
           {% for ai in result.ai_prescriptions %}
           <div class="mb-5 pb-5 border-b border-navy-700 last:border-0 last:mb-0 last:pb-0">
             <div class="flex items-center gap-2 mb-2">
@@ -175,9 +175,9 @@
           {% endfor %}
         </div>
         {% endif %}
-    {% if result.prescriptions %}
+    {% if result.ai_prescriptions %}
     <div class="bg-slate-800/40 rounded-lg p-4 mb-6">
-        <h3 class="text-white font-semibold mb-3">Gap Diagnosis (IC-π Engine)</h3>
+        <h3 class="text-white font-semibold mb-3">AI-Suggested Improvement Projects</h3>
         <div class="space-y-2">
             {% for rx in result.prescriptions %}
             <div class="flex items-start gap-3">
