@@ -3,18 +3,36 @@ SME Prior Initiatives Review
 ============================
 Magic-link screen for capturing the client's improvement history per KPI.
 Task 6: completed before Phase 2 prescriptions are generated.
+
+Scope rule: this screen shows ONLY the locked model.
+- Parameters that survived rho AND received a locked theta weight (ParameterWeight)
+- KPIs that survived theta L2 and received a locked weight (KPIWeightLocked)
+Anything that did not make it into the final index is never shown to the SME.
 """
 
+import uuid
+
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+
 from app.database import SessionLocal
-from app.models import Discovery, Process, Parameter, KPI, SME, SMEVote
+from app.models import (
+    Discovery,
+    Process,
+    Parameter,
+    ParameterWeight,
+    KPI,
+    KPIWeightLocked,
+    SME,
+)
 from app.prior_initiatives_model import PriorInitiative
 from app.routes.sme_portal import decode_sme_token
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
+
+VALID_ACTIONS = ("failed", "partial", "successful")
 
 
 def get_context(token):
@@ -25,50 +43,64 @@ def get_context(token):
     db = SessionLocal()
     try:
         sme = db.query(SME).filter(SME.id == payload["sme_id"]).first()
-        discovery = db.query(Discovery).filter(Discovery.id == payload["discovery_id"]).first()
+        discovery = db.query(Discovery).filter(
+            Discovery.id == payload["discovery_id"]
+        ).first()
         if not sme or not discovery:
             return None
 
-        process = db.query(Process).filter(Process.discovery_id == discovery.id).first()
+        process = db.query(Process).filter(
+            Process.discovery_id == discovery.id
+        ).first()
         if not process:
             return None
 
-        parameters = db.query(Parameter).filter(Parameter.process_id == process.id).all()
+        # Locked parameter weights define the final model (theta output).
+        locked_params = db.query(ParameterWeight).filter(
+            ParameterWeight.process_id == process.id
+        ).order_by(ParameterWeight.weight_normalized.desc()).all()
 
-        # Keep only parameters that received at least one YES vote in the rho gate
-        param_ids = [p.id for p in parameters]
-        all_votes = db.query(SMEVote).filter(
-        SMEVote.parameter_id.in_(param_ids)
-        ).all()
-
-        survivor_ids = {
-            vote.parameter_id
-            for vote in all_votes
-            if vote.relevant is True
-        }    
-
-        parameters = [
-            parameter
-            for parameter in parameters
-            if parameter.id in survivor_ids
-        ]
-            
         parameter_data = []
-        for parameter in parameters:
-            kpis = db.query(KPI).filter(KPI.parameter_id == parameter.id).all()
+        for locked in locked_params:
+            parameter = db.query(Parameter).filter(
+                Parameter.id == locked.parameter_id
+            ).first()
+            if not parameter:
+                continue
+
+            # Locked KPI weights define which KPIs are in the index (theta L2).
+            locked_kpis = db.query(KPIWeightLocked).filter(
+                KPIWeightLocked.parameter_id == parameter.id
+            ).order_by(KPIWeightLocked.weight_normalized.desc()).all()
+
             kpi_data = []
-            for kpi in kpis:
+            for locked_kpi in locked_kpis:
+                kpi = db.query(KPI).filter(KPI.id == locked_kpi.kpi_id).first()
+                if not kpi:
+                    continue
+
                 prior = db.query(PriorInitiative).filter(
                     PriorInitiative.kpi_id == kpi.id,
                     PriorInitiative.sme_id == sme.id,
                 ).first()
+
                 kpi_data.append({
                     "id": str(kpi.id),
                     "name": kpi.name,
                     "description": kpi.description or "",
-                    "prior": prior,
+                    "unit": kpi.unit or "",
+                    "prior_action": (prior.outcome_type if prior else "") or "",
+                    "prior_description": (prior.description if prior else "") or "",
+                    "prior_outcome": (prior.outcome if prior else "") or "",
+                    "prior_when": (prior.tried_when if prior else "") or "",
                 })
-            parameter_data.append({"name": parameter.name, "kpis": kpi_data})
+
+            if kpi_data:
+                parameter_data.append({
+                    "name": parameter.name,
+                    "weight": round(locked.weight_normalized * 100, 1),
+                    "kpis": kpi_data,
+                })
 
         return {
             "sme": sme,
@@ -108,37 +140,47 @@ async def save_prior_initiatives(request: Request, token: str):
     db = SessionLocal()
     try:
         sme_id = context["sme"].id
+        discovery_id = context["discovery"].id
+
         for parameter in context["parameters"]:
             for kpi in parameter["kpis"]:
-                kpi_id = kpi["id"]
-                action = str(form.get("action_" + kpi_id, "none"))
-                description = str(form.get("description_" + kpi_id, "")).strip()
-                outcome = str(form.get("outcome_" + kpi_id, "")).strip()
-                tried_when = str(form.get("tried_when_" + kpi_id, "")).strip()
+                kpi_uuid = uuid.UUID(kpi["id"])
+
+                action = str(form.get("action_" + kpi["id"], "none")).strip()
+                description = str(form.get("description_" + kpi["id"], "")).strip()
+                outcome = str(form.get("outcome_" + kpi["id"], "")).strip()
+                tried_when = str(form.get("tried_when_" + kpi["id"], "")).strip()
 
                 existing = db.query(PriorInitiative).filter(
-                    PriorInitiative.kpi_id == kpi_id,
+                    PriorInitiative.kpi_id == kpi_uuid,
                     PriorInitiative.sme_id == sme_id,
                 ).first()
 
-                if action == "none":
+                # "No prior action" clears any previous entry by this SME.
+                if action not in VALID_ACTIONS:
                     if existing:
                         db.delete(existing)
                     continue
 
+                # An attempt was reported. Never discard the classification,
+                # even when the SME left the description blank.
                 if not description:
-                    continue
+                    description = "Attempt reported without details."
 
                 if existing:
+                    existing.outcome_type = action
                     existing.description = description
-                    existing.outcome = outcome or action
+                    existing.outcome = outcome
                     existing.tried_when = tried_when
+                    existing.discovery_id = discovery_id
                 else:
                     db.add(PriorInitiative(
-                        kpi_id=kpi_id,
+                        discovery_id=discovery_id,
+                        kpi_id=kpi_uuid,
                         sme_id=sme_id,
+                        outcome_type=action,
                         description=description,
-                        outcome=outcome or action,
+                        outcome=outcome,
                         tried_when=tried_when,
                     ))
 
