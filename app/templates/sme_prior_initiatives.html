@@ -1,76 +1,79 @@
-
-<!-- saved from url=(0131)https://t9017030401.p.clickup-attachments.com/t9017030401/bb56c598-4a23-4fd1-949a-b39a2d5a6e4a/sme_prior_initiatives.html?view=open -->
-<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></head><body class="clickup-chrome-ext_installed" data-new-gr-c-s-check-loaded="14.1325.0" data-gr-ext-installed="">{% extends "base.html" %}
+{% extends "base.html" %}
 {% block title %}Prior Initiatives Review | IC-Pi{% endblock %}
 {% block content %}
 <div class="max-w-4xl mx-auto px-4 py-8">
-    <div class="mb-8">
-        <p class="text-xs uppercase tracking-wide text-cyan-400 font-semibold mb-2">IC-Pi | SME Task 6</p>
-        <h1 class="text-2xl font-bold text-white">Prior Initiatives Review</h1>
-        <p class="text-slate-400 mt-2">{{ process.name }} | {{ sme.name }}</p>
-    </div>
 
-    <div class="bg-slate-800/60 border border-cyan-700/40 rounded-lg p-5 mb-6">
-        <h2 class="text-lg font-semibold text-cyan-300 mb-2">Why we ask</h2>
-        <p class="text-slate-300 text-sm">Before IC-Pi recommends improvement projects, we need to know what your organization has already tried. This prevents repeating failed initiatives and helps identify better alternatives.</p>
-        <p class="text-slate-400 text-sm mt-2"><strong class="text-white">No prior action</strong> is a valid answer. Please report only what you know.</p>
-    </div>
+  <div class="mb-6 flex flex-wrap items-center gap-2">
+    <span class="px-3 py-1 text-xs font-semibold rounded-full bg-cyan-900/60 text-cyan-300 border border-cyan-700/50">Step 6 of 6</span>
+    <span class="px-3 py-1 text-xs font-semibold rounded-full bg-slate-800 text-slate-300 border border-slate-700">Anonymous to peers</span>
+  </div>
 
-        <form method="POST" action="/sme/prior-initiatives/{{ token }}">
-        {% for parameter in parameters %}
-        <section class="mb-8">
-            <h2 class="text-lg font-semibold text-white border-b border-slate-700 pb-2 mb-4">{{ parameter.name }}</h2>
-            {% for kpi in parameter.kpis %}
-            <div class="bg-slate-800/50 border border-slate-700 rounded-lg p-4 mb-4">
-                <h3 class="text-white font-semibold">{{ kpi.name }}</h3>
-                {% if kpi.description %}<p class="text-slate-500 text-sm mt-1">{{ kpi.description }}</p>{% endif %}
-                <div class="mt-4">
-                    <p class="text-sm text-slate-300 mb-2">Has the organization tried to improve this KPI?</p>
-                    <label class="block text-sm text-slate-300 mb-2"><input type="radio" name="action_{{ kpi.id }}" value="none" checked="" class="mr-2"> No prior action / not aware</label>
-                    <label class="block text-sm text-slate-300 mb-2"><input type="radio" name="action_{{ kpi.id }}" value="failed" class="mr-2"> Tried it, did not work</label>
-                    <label class="block text-sm text-slate-300 mb-2"><input type="radio" name="action_{{ kpi.id }}" value="partial" class="mr-2"> Tried it, partially worked</label>
-                    <label class="block text-sm text-slate-300"><input type="radio" name="action_{{ kpi.id }}" value="successful" class="mr-2"> Tried it, worked but needs reinforcement</label>
-                </div>
-                <div class="grid md:grid-cols-2 gap-3 mt-4">
-                    <div>
-                        <label class="block text-xs uppercase text-slate-500 mb-1">What was tried?</label>
-                        <textarea name="description_{{ kpi.id }}" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white" placeholder="Initiative, project, policy, technology, or process change"></textarea>
-                    </div>
-                    <div>
-                        <label class="block text-xs uppercase text-slate-500 mb-1">Outcome</label>
-                        <textarea name="outcome_{{ kpi.id }}" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white" placeholder="What happened? Why did it fail or only partly work?"></textarea>
-                    </div>
-                </div>
-                <div class="mt-3">
-                    <label class="block text-xs uppercase text-slate-500 mb-1">When was it tried?</label>
-                    <input type="text" name="tried_when_{{ kpi.id }}" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white" placeholder="Approximate period, e.g. 2024 or Q2 2025">
-                </div>
-            </div>
-            {% endfor %}
-        </section>
-        {% endfor %}
-        <button type="submit" class="px-5 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold rounded-lg">Submit Prior Initiative History</button>
-    </form>
+  <div class="mb-8">
+    <p class="text-xs uppercase tracking-wide text-cyan-400 font-semibold mb-2">IC-Pi | SME Task 6</p>
+    <h1 class="text-2xl font-bold text-white">Prior Initiatives Review</h1>
+    <p class="text-slate-400 mt-2">{{ process.name }} | {{ sme.name }}</p>
+  </div>
+
+  <div class="bg-slate-800/60 border border-cyan-700/40 rounded-lg p-5 mb-6">
+    <h2 class="text-lg font-semibold text-cyan-300 mb-2">Why we ask</h2>
+    <p class="text-slate-300 text-sm">Before IC-Pi recommends improvement projects, we need to know what your organization has already tried. This prevents repeating failed initiatives and helps identify better alternatives.</p>
+    <p class="text-slate-400 text-sm mt-2"><strong class="text-white">No prior action</strong> is a valid answer. Please report only what you know.</p>
+  </div>
+
+  {% if not parameters %}
+  <div class="bg-slate-800/50 border border-amber-700/40 rounded-lg p-6 text-center">
+    <p class="text-amber-300 font-semibold mb-2">This review is not ready yet</p>
+    <p class="text-slate-400 text-sm">The performance model for this process has not been finalized. Please contact your IC-Pi consultant.</p>
+  </div>
+  {% else %}
+
+  <form method="POST" action="/sme/prior-initiatives/{{ token }}">
+    {% for parameter in parameters %}
+    <section class="mb-8">
+      <div class="flex items-baseline justify-between border-b border-slate-700 pb-2 mb-4">
+        <h2 class="text-lg font-semibold text-white">{{ parameter.name }}</h2>
+        <span class="text-xs text-slate-500">Weight {{ parameter.weight }}%</span>
+      </div>
+
+      {% for kpi in parameter.kpis %}
+      <div class="bg-slate-800/50 border border-slate-700 rounded-lg p-4 mb-4">
+        <h3 class="text-white font-semibold">
+          {{ kpi.name }}{% if kpi.unit %} <span class="text-slate-500 text-sm font-normal">({{ kpi.unit }})</span>{% endif %}
+        </h3>
+        {% if kpi.description %}<p class="text-slate-500 text-sm mt-1">{{ kpi.description }}</p>{% endif %}
+
+        <div class="mt-4">
+          <p class="text-sm text-slate-300 mb-2">Has the organization tried to improve this KPI?</p>
+          <label class="block text-sm text-slate-300 mb-2"><input type="radio" name="action_{{ kpi.id }}" value="none" class="mr-2" {% if not kpi.prior_action %}checked{% endif %}> No prior action / not aware</label>
+          <label class="block text-sm text-slate-300 mb-2"><input type="radio" name="action_{{ kpi.id }}" value="failed" class="mr-2" {% if kpi.prior_action == 'failed' %}checked{% endif %}> Tried it, did not work</label>
+          <label class="block text-sm text-slate-300 mb-2"><input type="radio" name="action_{{ kpi.id }}" value="partial" class="mr-2" {% if kpi.prior_action == 'partial' %}checked{% endif %}> Tried it, partially worked</label>
+          <label class="block text-sm text-slate-300"><input type="radio" name="action_{{ kpi.id }}" value="successful" class="mr-2" {% if kpi.prior_action == 'successful' %}checked{% endif %}> Tried it, worked but needs reinforcement</label>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-3 mt-4">
+          <div>
+            <label class="block text-xs uppercase text-slate-500 mb-1">What was tried?</label>
+            <textarea name="description_{{ kpi.id }}" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white" placeholder="Initiative, project, policy, technology, or process change">{{ kpi.prior_description }}</textarea>
+          </div>
+          <div>
+            <label class="block text-xs uppercase text-slate-500 mb-1">Outcome</label>
+            <textarea name="outcome_{{ kpi.id }}" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white" placeholder="What happened? Why did it fail or only partly work?">{{ kpi.prior_outcome }}</textarea>
+          </div>
+        </div>
+
+        <div class="mt-3">
+          <label class="block text-xs uppercase text-slate-500 mb-1">When was it tried?</label>
+          <input type="text" name="tried_when_{{ kpi.id }}" value="{{ kpi.prior_when }}" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white" placeholder="Approximate period, e.g. 2024 or Q2 2025">
+        </div>
+      </div>
+      {% endfor %}
+    </section>
+    {% endfor %}
+
+    <button type="submit" class="px-5 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold rounded-lg">Submit Prior Initiative History</button>
+    <p class="text-slate-500 text-xs mt-3">Once submitted, you can reopen this link to review or update your answers.</p>
+  </form>
+
+  {% endif %}
 </div>
 {% endblock %}
-</body><grammarly-desktop-integration data-grammarly-shadow-root="true" style="visibility: visible !important;"><template shadowrootmode="open"><style>
-      div.grammarly-desktop-integration {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        padding: 0;
-        margin: -1px;
-        overflow: hidden;
-        clip: rect(0, 0, 0, 0);
-        white-space: nowrap;
-        border: 0;
-        -moz-user-select: none;
-        -webkit-user-select: none;
-        -ms-user-select:none;
-        user-select:none;
-      }
-
-      div.grammarly-desktop-integration:before {
-        content: attr(data-content);
-      }
-    </style><div aria-label="grammarly-integration" role="group" tabindex="-1" class="grammarly-desktop-integration" data-content="{&quot;mode&quot;:&quot;full&quot;,&quot;isActive&quot;:true,&quot;isUserDisabled&quot;:false}"></div></template></grammarly-desktop-integration></html>
