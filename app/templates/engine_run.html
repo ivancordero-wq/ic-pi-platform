@@ -177,14 +177,14 @@
         {% endif %}
     {% if result.prescriptions %}
     <div class="bg-slate-800/40 rounded-lg p-4 mb-6">
-        <h3 class="text-white font-semibold mb-3">AI-Generated Prescriptions</h3>
+        <h3 class="text-white font-semibold mb-3">Gap Diagnosis (IC-π Engine)</h3>
         <div class="space-y-2">
             {% for rx in result.prescriptions %}
             <div class="flex items-start gap-3">
                 {% if rx.tier == 'CRITICAL' %}
                 <span class="px-2 py-0.5 rounded text-xs bg-red-900/50 text-red-300 border border-red-700/50 flex-shrink-0">CRITICAL</span>
                 {% else %}
-                <span class="px-2 py-0.5 rounded text-xs bg-yellow-900/50 text-yellow-300 flex-shrink-0">PREVENTIVE</span>
+                <span class="px-2 py-0.5 rounded text-xs bg-yellow-900/50 text-yellow-300 flex-shrink-0">{{ rx.tier }}</span>
                 {% endif %}
                 <p class="text-slate-300 text-sm">{{ rx.text }}</p>
             </div>
