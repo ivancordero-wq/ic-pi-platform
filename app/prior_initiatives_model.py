@@ -19,8 +19,10 @@ class PriorInitiative(Base):
     __tablename__ = "prior_initiatives"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    discovery_id = Column(UUID(as_uuid=True), nullable=True)
     kpi_id = Column(UUID(as_uuid=True), ForeignKey("kpis.id"), nullable=False)
     sme_id = Column(UUID(as_uuid=True), ForeignKey("smes.id"), nullable=True)
+    outcome_type = Column(String(20), nullable=True)
     description = Column(Text, nullable=False)
     outcome = Column(Text, nullable=True)
     tried_when = Column(String(100), nullable=True)
