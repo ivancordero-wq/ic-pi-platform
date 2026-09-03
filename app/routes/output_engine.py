@@ -1,13 +1,17 @@
 """
 Screen 6: Output Engine
 ========================
-Blueprint generation, preview, and PDF download.
+Blueprint 2 generation, preview, and PDF download.
+
+Scope rule: only the LOCKED model appears in the Blueprint.
+- Parameters must hold a locked ParameterWeight with weight > 0
+- KPIs must hold a locked KPIWeightLocked
+Anything that did not make it into the final index is excluded.
 """
 
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
-from sqlalchemy import select
 from app.database import SessionLocal
 from app.models import (
     Discovery, Process, Client, Parameter, KPI,
@@ -42,36 +46,46 @@ def gather_blueprint_data(discovery_id: str):
         client = db.query(Client).filter(Client.id == discovery.client_id).first()
         process = db.query(Process).filter(Process.discovery_id == discovery_id).first()
 
-        # Parameters with weights
-        parameters = db.query(Parameter).filter(Parameter.process_id == process.id).all()
-        param_weights = db.query(ParameterWeight).filter(ParameterWeight.process_id == process.id).all()
-        weight_map = {str(pw.parameter_id): pw.weight_normalized for pw in param_weights}
+        # Locked parameter weights define the final model (theta L1 output).
+        # Zero-weight rows contribute nothing to the NPI and are excluded.
+        param_weights = db.query(ParameterWeight).filter(
+            ParameterWeight.process_id == process.id,
+            ParameterWeight.weight_normalized > 0,
+        ).order_by(ParameterWeight.weight_normalized.desc()).all()
 
-        # KPIs with weights
         param_data = []
-        for param in parameters:
-            w_i = weight_map.get(str(param.id), 0)
-            kpis = db.query(KPI).filter(KPI.parameter_id == param.id).all()
+        for locked in param_weights:
+            param = db.query(Parameter).filter(
+                Parameter.id == locked.parameter_id
+            ).first()
+            if not param:
+                continue
 
-            kpi_weights = db.query(KPIWeightLocked).filter(
+            w_i = locked.weight_normalized
+
+            # Locked KPI weights define which KPIs are in the index (theta L2).
+            locked_kpis = db.query(KPIWeightLocked).filter(
                 KPIWeightLocked.parameter_id == param.id
-            ).all()
-            kpi_weight_map = {str(kw.kpi_id): kw.weight_normalized for kw in kpi_weights}
+            ).order_by(KPIWeightLocked.weight_normalized.desc()).all()
 
             kpi_list = []
-            for kpi in kpis:
-                w_ij = kpi_weight_map.get(str(kpi.id), 0)
+            for locked_kpi in locked_kpis:
+                kpi = db.query(KPI).filter(KPI.id == locked_kpi.kpi_id).first()
+                if not kpi:
+                    continue
+
+                w_ij = locked_kpi.weight_normalized
                 kpi_list.append({
                     "id": str(kpi.id),
                     "name": kpi.name,
-                    "description": kpi.description if hasattr(kpi, 'description') else "",
+                    "description": kpi.description or "",
                     "weight": round(w_ij * 100, 1) if w_ij else 0,
                 })
 
             param_data.append({
                 "id": str(param.id),
                 "name": param.name,
-                "source": param.source if hasattr(param, 'source') else "expert",
+                "source": param.source or "expert",
                 "weight": round(w_i * 100, 1) if w_i else 0,
                 "kpis": kpi_list,
             })
@@ -92,7 +106,14 @@ def gather_blueprint_data(discovery_id: str):
 
         # SME Panel
         smes = db.query(SME).filter(SME.discovery_id == discovery_id).all()
-        sme_data = [{"name": s.name, "email": s.email, "role": s.role if hasattr(s, 'role') else "SME"} for s in smes]
+        sme_data = [
+            {
+                "name": s.name,
+                "email": s.email,
+                "role": s.role if hasattr(s, "role") else "SME",
+            }
+            for s in smes
+        ]
 
         # Engine Result
         engine_result = db.query(EngineResult).filter(
