@@ -43,10 +43,20 @@ def gather_blueprint1_data(discovery_id: str):
         process = db.query(Process).filter(Process.discovery_id == discovery_id).first()
 
         # Parameters with weights
-        parameters = db.query(Parameter).filter(Parameter.process_id == process.id).all()
-        param_weights = db.query(ParameterWeight).filter(ParameterWeight.process_id == process.id).all()
+         # Only parameters that survived rho AND received a locked theta weight
+        # belong in the Blueprint. Ordered by weight, heaviest first.
+        param_weights = db.query(ParameterWeight).filter(
+            ParameterWeight.process_id == process.id
+        ).order_by(ParameterWeight.weight_normalized.desc()).all()
         weight_map = {str(pw.parameter_id): pw.weight_normalized for pw in param_weights}
 
+        parameters = []
+        for pw in param_weights:
+            locked_param = db.query(Parameter).filter(
+                Parameter.id == pw.parameter_id
+            ).first()
+            if locked_param is not None:
+                parameters.append(locked_param)›
         # KPIs with weights AND formulas
         param_data = []
         for param in parameters:
