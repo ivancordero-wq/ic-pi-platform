@@ -57,6 +57,8 @@ from sqlalchemy import text
 with engine.connect() as conn:
     try:
         conn.execute(text("ALTER TABLE tau_designations_v2 ADD COLUMN IF NOT EXISTS assigned_sme_id VARCHAR"))
+        conn.execute(text("ALTER TABLE prior_initiatives ADD COLUMN IF NOT EXISTS outcome_type VARCHAR(20)"))
+        conn.execute(text("ALTER TABLE prior_initiatives ADD COLUMN IF NOT EXISTS discovery_id UUID"))
         conn.commit()
     except Exception:
         pass
