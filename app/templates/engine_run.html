@@ -162,8 +162,26 @@
 
     <!-- Prescriptions -->
     {% if result.prescriptions %}
+        <div class="bg-navy-800 rounded-xl p-6 mb-6">
+          <h3 class="text-lg font-semibold text-slate-200 mb-4">Gap Diagnosis (IC-&pi; Engine)</h3>
+          <div class="space-y-3">
+          {% for rx in result.prescriptions %}
+            <div class="flex gap-3 items-start">
+              {% if rx.tier == 'CRITICAL' %}
+              <span class="text-xs px-2 py-1 rounded bg-red-500/20 text-red-300 font-medium whitespace-nowrap">CRITICAL</span>
+              {% else %}
+              <span class="text-xs px-2 py-1 rounded bg-yellow-500/20 text-yellow-300 font-medium whitespace-nowrap">{{ rx.tier }}</span>
+              {% endif %}
+              <p class="text-sm text-slate-300">{{ rx.text }}</p>
+            </div>
+          {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        {% if result.ai_prescriptions %}
         <div class="bg-navy-800 rounded-xl p-6 mb-6 border border-purple-500/30">
-          <h3 class="text-lg font-semibold text-purple-300 mb-4">Gap Diagnosis (IC-π Engine)</h3>
+          <h3 class="text-lg font-semibold text-purple-300 mb-4">AI-Suggested Improvement Projects</h3>
           {% for ai in result.ai_prescriptions %}
           <div class="mb-5 pb-5 border-b border-navy-700 last:border-0 last:mb-0 last:pb-0">
             <div class="flex items-center gap-2 mb-2">
@@ -175,23 +193,6 @@
           {% endfor %}
         </div>
         {% endif %}
-    {% if result.ai_prescriptions %}
-    <div class="bg-slate-800/40 rounded-lg p-4 mb-6">
-        <h3 class="text-white font-semibold mb-3">AI-Suggested Improvement Projects</h3>
-        <div class="space-y-2">
-            {% for rx in result.prescriptions %}
-            <div class="flex items-start gap-3">
-                {% if rx.tier == 'CRITICAL' %}
-                <span class="px-2 py-0.5 rounded text-xs bg-red-900/50 text-red-300 border border-red-700/50 flex-shrink-0">CRITICAL</span>
-                {% else %}
-                <span class="px-2 py-0.5 rounded text-xs bg-yellow-900/50 text-yellow-300 flex-shrink-0">{{ rx.tier }}</span>
-                {% endif %}
-                <p class="text-slate-300 text-sm">{{ rx.text }}</p>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
 
     <!-- Computation Timestamp -->
     <p class="text-xs text-slate-500 text-right">Computed: {{ discovery.status }} | Discovery ID: {{ discovery.id }}</p>
