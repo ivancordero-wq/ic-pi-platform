@@ -114,6 +114,7 @@ async def login(payload: LoginRequest, response: Response, db: Session = Depends
         user_id=str(user.id),
         email=user.email,
         role=user.role,
+         full_name=user.full_name,
     )
 
     # Set HTTP-only cookie (browser sessions)
@@ -153,6 +154,7 @@ async def sme_access(payload: SMEAccessRequest, response: Response, db: Session 
         user_id=token_data["sme_id"],
         email=f"sme-{token_data['sme_id']}@magic-link",
         role="sme",
+        full_name="Subject Matter Expert",
     )
 
     # Set cookie
