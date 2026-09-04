@@ -122,7 +122,7 @@ async def consultant_dashboard(request: Request):
             "dashboard.html",
             {
                 "request": request,
-                "consultant_name": getattr(user_data, "full_name", None) or getattr(user_data, "sub", "Consultant"),
+                "consultant_name": user_data.full_name or user_data.email,
                 "projects": projects,
                 "active_filter": "All",
             },
