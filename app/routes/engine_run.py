@@ -362,7 +362,7 @@ def compute_npi(process_id, db):
                     f"A client is running a process called '{process.name}'. "
                     f"The performance model identified that the KPI '{gap['kpi']}' in the parameter "
                     f"'{gap['parameter']}' has the largest performance gap. "
-                    + client_context
+                    + client_context +
                     f"Suggest 2 concrete improvement projects that a leadership team would fund. "
                     f"Each project should be specific, actionable, and name what will be done "
                     f"(not abstract like 'improve this KPI'). "
