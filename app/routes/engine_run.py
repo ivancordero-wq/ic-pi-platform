@@ -18,7 +18,7 @@ import json
 
 from app.database import SessionLocal
 from app.models import (
-    Discovery, Process, Parameter, KPI, KPIScore,
+    Client, Discovery, Process, Parameter, KPI, KPIScore,
     ParameterWeight, KPIWeightLocked, TauDesignation, EngineResult, KPIAnchor
 )
 from app.auth import decode_access_token
@@ -51,6 +51,16 @@ def compute_npi(process_id, db):
         return None
 
     process = db.query(Process).filter(Process.id == process_id).first()
+
+    # Client context: industry and country shape what is actually executable.
+    discovery_row = db.query(Discovery).filter(
+        Discovery.id == process.discovery_id
+    ).first() if process else None
+    client_row = db.query(Client).filter(
+        Client.id == discovery_row.client_id
+    ).first() if discovery_row else None
+    client_industry = (client_row.industry if client_row else None) or "unspecified"
+    client_country = (client_row.country if client_row else None) or ""
 
     parameter_results = []
     alpha_alerts = []
@@ -284,6 +294,20 @@ def compute_npi(process_id, db):
     if openai_key and prescriptions:
         try:
             client = OpenAI(api_key=openai_key)
+            client_context = (
+                "The organization operates in the " + client_industry + " industry"
+            )
+            if client_country:
+                client_context += (
+                    " and is located in " + client_country + ". "
+                    "Every project you propose MUST be executable in " + client_country + ": "
+                    "account for local availability of qualified talent and the labour market, "
+                    "labour law and regulatory constraints, infrastructure maturity, and local "
+                    "vendor availability. If a conventional solution is not realistic there, say "
+                    "so briefly and propose the locally viable alternative instead. "
+                )
+            else:
+                client_context += ". "
             top_gaps = [p for p in prescriptions if p["tier"] == "HIGH IMPACT"][:3]
             # Enrich with metrics from gaps list
             for tg in top_gaps:
@@ -338,6 +362,7 @@ def compute_npi(process_id, db):
                     f"A client is running a process called '{process.name}'. "
                     f"The performance model identified that the KPI '{gap['kpi']}' in the parameter "
                     f"'{gap['parameter']}' has the largest performance gap. "
+                    + client_context
                     f"Suggest 2 concrete improvement projects that a leadership team would fund. "
                     f"Each project should be specific, actionable, and name what will be done "
                     f"(not abstract like 'improve this KPI'). "
