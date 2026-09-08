@@ -43,6 +43,7 @@ async def generate_formulas(request: Request, discovery_id: str):
         # Get client industry
         client = db.query(Client).filter(Client.id == discovery.client_id).first()
         industry = client.industry if client and client.industry else "General"
+        country = client.country if client and client.country else ""
 
         # Build KPI list with parameter context
         kpi_list = []
@@ -63,7 +64,7 @@ async def generate_formulas(request: Request, discovery_id: str):
             return JSONResponse({"error": "No KPIs found"}, status_code=400)
 
         # Call AI formula generator
-        results = generate_formulas_for_kpis(industry, process.name, kpi_list)
+        results = generate_formulas_for_kpis(industry, process.name, kpi_list, country)
 
         if not results:
             return JSONResponse({
