@@ -16,7 +16,7 @@ from datetime import datetime
 from app.database import SessionLocal
 from app.models import (
     Discovery, Process, Parameter, SME,
-    ParameterRanking, ThetaGate
+    ParameterRanking, ThetaGate, SMEVote
 )
 
 router = APIRouter()
@@ -102,7 +102,17 @@ async def sme_ranking_form(request: Request, token: str):
             )
 
         # Get parameters to rank
-        parameters = db.query(Parameter).filter(Parameter.process_id == process.id).all()
+        all_parameters = db.query(Parameter).filter(Parameter.process_id == process.id).all()
+
+        # Rho gate survival: >=1 SME voted relevant=True in ANY round
+        parameters = []
+        for p in all_parameters:
+            yes_votes = db.query(SMEVote).filter(
+                SMEVote.parameter_id == p.id,
+                SMEVote.relevant == True
+            ).count()
+            if yes_votes >= 1:
+                parameters.append(p)
 
         # Build parameter data with previous round averages (for Delphi)
         param_data = []
