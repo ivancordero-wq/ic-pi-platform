@@ -49,9 +49,19 @@ def compute_theta_data(process_id, db, theta_threshold, current_round):
     Compute variance and convergence for all survived parameters.
     Returns list of dicts with parameter info, avg rank, variance, convergence status.
     """
-    parameters = db.query(Parameter).filter(
+    all_parameters = db.query(Parameter).filter(
         Parameter.process_id == process_id
     ).all()
+
+    # Rho gate survival: >=1 SME voted relevant=True in ANY round
+    parameters = []
+    for p in all_parameters:
+        yes_votes = db.query(SMEVote).filter(
+            SMEVote.parameter_id == p.id,
+            SMEVote.relevant == True
+        ).count()
+        if yes_votes >= 1:
+            parameters.append(p)
 
     process = db.query(Process).filter(Process.id == process_id).first()
     smes = db.query(SME).filter(SME.discovery_id == process.discovery_id).all()
