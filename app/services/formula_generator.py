@@ -26,12 +26,23 @@ def build_kpi_block(kpi_list):
     return "\n".join(lines)
 
 
-def build_prompt(industry, process_name, kpi_block):
+def build_prompt(industry, process_name, kpi_block, country=""):
     parts = []
     parts.append("You are an expert performance measurement consultant.")
     parts.append("")
     parts.append("Industry: " + industry)
     parts.append("Process: " + process_name)
+    if country:
+        parts.append("Country: " + country)
+        parts.append("")
+        parts.append("CRITICAL CONTEXT REQUIREMENT:")
+        parts.append("This organization operates in the " + industry + " industry in " + country + ".")
+        parts.append("Every formula and note MUST reflect that reality:")
+        parts.append("- Express monetary values in the local currency of " + country + ".")
+        parts.append("- Name data sources that plausibly exist in a " + industry + " organization in " + country + ", such as local systems, registries or manual records. Do not assume US vendor products.")
+        parts.append("- Reference the regulatory or reporting framework that actually applies in " + country + " for this industry instead of generic SLAs.")
+        parts.append("- Use terminology a local practitioner in " + country + " would recognize.")
+        parts.append("- If a measurement is not realistically collectable there, say so in the notes and propose the locally viable proxy.")
     parts.append("")
     parts.append("For each KPI below, provide:")
     parts.append("1. A precise MEASUREMENT FORMULA (how to compute it from raw data)")
@@ -53,12 +64,12 @@ def build_prompt(industry, process_name, kpi_block):
     return "\n".join(parts)
 
 
-def generate_formulas_for_kpis(industry, process_name, kpi_list):
+def generate_formulas_for_kpis(industry, process_name, kpi_list, country=""):
     if not OPENAI_API_KEY:
         return []
 
     kpi_block = build_kpi_block(kpi_list)
-    prompt = build_prompt(industry, process_name, kpi_block)
+    prompt = build_prompt(industry, process_name, kpi_block, country)
 
     try:
         response = httpx.post(
