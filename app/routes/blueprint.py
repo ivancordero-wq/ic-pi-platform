@@ -15,7 +15,7 @@ from jinja2 import Environment, FileSystemLoader
 from app.database import get_db
 import json
 from app import models
-from engine.schemas import EngineOutput
+from engine.schemas import EngineOutput, ProcessResult, ParameterScore
 
 router = APIRouter()
 
@@ -24,7 +24,48 @@ templates = Environment(
     autoescape=True,
 )
 
+def _adapt_engine_result(engine_result, discovery, client) -> EngineOutput:
+    """Map the flat engine_run result dict onto the Blueprint EngineOutput schema."""
+    raw = json.loads(engine_result.result_json)
 
+    params = []
+    for idx, p in enumerate(raw.get("parameter_results", [])):
+        alpha = float(p.get("alpha", 1))
+        params.append(ParameterScore(
+            parameter_id=str(p.get("name", idx)),
+            parameter_name=p.get("name", "Unnamed"),
+            W_i=float(p.get("W_i", 0)) / 100.0,
+            kpi_composite=float(p.get("composite_score", 0)) / 100.0,
+            contribution=float(p.get("contribution", 0)) / 100.0,
+            trip_wire_flag=(alpha == 0),
+            kill_switch_active=(alpha == 0),
+        ))
+
+    zone = raw.get("zone", "RED")
+    alerts = raw.get("alpha_alerts", [])
+
+    proc = ProcessResult(
+        process_id=str(discovery.id),
+        process_name=discovery.name,
+        npi_score=float(raw.get("npi_score", 0)) / 100.0,
+        zone=zone,
+        alpha_triggered=len(alerts) > 0,
+        tau_converged=True,
+        tau_rounds=1,
+        parameters=params,
+        trip_wire_flags=[str(a) for a in alerts],
+        prescriptions=[str(x) for x in raw.get("prescriptions", [])],
+    )
+
+    return EngineOutput(
+        discovery_id=str(discovery.id),
+        client_name=client.name,
+        process_count=1,
+        processes=[proc],
+        overall_zone=zone,
+        rho_gate_passed=True,
+        timestamp=str(engine_result.generated_at),
+    )
 def _build_template_context(engine_output: EngineOutput, client_name: str, discovery_name: str) -> dict:
     processes_data = []
     for proc in engine_output.processes:
