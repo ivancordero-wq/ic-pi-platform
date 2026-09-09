@@ -13,6 +13,7 @@ from weasyprint import HTML
 from jinja2 import Environment, FileSystemLoader
 
 from app.database import get_db
+import json
 from app import models
 from engine.schemas import EngineOutput
 
@@ -133,9 +134,10 @@ def preview_blueprint(discovery_id: UUID, db: Session = Depends(get_db)):
     if not engine_result:
         raise HTTPException(404, "No engine results found. Run the engine first.")
 
-    engine_output = EngineOutput.model_validate_json(engine_result.result_json)
     discovery = db.query(models.Discovery).filter(models.Discovery.id == discovery_id).first()
     client = db.query(models.Client).filter(models.Client.id == discovery.client_id).first()
+
+    engine_output = _adapt_engine_result(engine_result, discovery, client)
 
     context = _build_template_context(engine_output, client.name, discovery.name)
     return context
