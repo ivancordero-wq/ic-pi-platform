@@ -122,10 +122,10 @@ def generate_executive_summary(discovery_id: UUID, db: Session = Depends(get_db)
         raise HTTPException(404, "No engine results found. Run the engine first.")
 
     discovery = db.query(models.Discovery).filter(models.Discovery.id == discovery_id).first()
-        client = db.query(models.Client).filter(models.Client.id == discovery.client_id).first()
+    client = db.query(models.Client).filter(models.Client.id == discovery.client_id).first()
 
-        engine_output = _adapt_engine_result(engine_result, discovery, client)
-        context = _build_template_context(engine_output, client.name, discovery.name)
+    engine_output = _adapt_engine_result(engine_result, discovery, client)
+    context = _build_template_context(engine_output, client.name, discovery.name)
 
     template = templates.get_template("executive_summary.html")
     html_content = template.render(**context)
