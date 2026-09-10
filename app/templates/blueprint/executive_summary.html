@@ -112,5 +112,26 @@
 {% endfor %}
 {% endfor %}
 
+<h2>5. AI-Suggested Improvement Projects</h2>
+{% if ai_prescriptions %}
+{% for rx in ai_prescriptions %}
+<div class="prescription">
+    <strong>{{ rx.parameter }} / {{ rx.kpi }}</strong>
+    <span style="font-size: 9pt; color: #666;">(W_i {{ rx.W_i }}% &middot; w_ij {{ rx.w_ij }}% &middot; score {{ rx.score }}%)</span><br>
+   {{ rx.projects | replace("\n", "<br>") | safe }}
+</div>
+{% endfor %}
+{% else %}
+<div class="prescription critical">
+    <strong>PREREQUISITE &mdash; KPI readiness</strong><br>
+    No improvement projects can be prescribed yet. This Discovery has produced the performance
+    model (parameter weights, KPI weights, survival floors), but the client has not yet built and
+    populated the KPI measurement pipeline. Establishing that measurement capability IS the
+    prescribed first project: without it, any project list would be speculation rather than
+    diagnosis. Once KPIs are instrumented and scored, IC-π&trade; generates the project set from
+    the client's own measured gaps.
+</div>
+{% endif %}    
+
 </body>
 </html>
