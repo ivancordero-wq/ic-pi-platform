@@ -109,6 +109,7 @@ class EngineOutput(BaseModel):
     client_name: str
     process_count: int = 0
     processes: list[ProcessResult]
+    ai_prescriptions: list[dict] = []
     overall_zone: Zone
     rho_gate_passed: bool = False
     timestamp: str = ""
