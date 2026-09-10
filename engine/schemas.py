@@ -101,7 +101,7 @@ class ProcessResult(BaseModel):
     tau_rounds: int
     parameters: list[ParameterScore]
     trip_wire_flags: list[str] = []
-    prescriptions: list[str] = []
+    prescriptions: list[dict] = []
 
 
 class EngineOutput(BaseModel):
