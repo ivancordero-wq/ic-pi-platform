@@ -62,6 +62,7 @@ def _adapt_engine_result(engine_result, discovery, client) -> EngineOutput:
         client_name=client.name,
         process_count=1,
         processes=[proc],
+        ai_prescriptions=raw.get("ai_prescriptions", []),
         overall_zone=zone,
         rho_gate_passed=True,
         timestamp=str(engine_result.generated_at),
