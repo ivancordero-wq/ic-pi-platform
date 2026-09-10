@@ -251,18 +251,23 @@ def compute_npi(process_id, db):
                     worst_kpi = kpi
 
         if worst_kpi:
-            potential_npi_gain = round(g["weighted_gap"] * 0.5, 1)
-            prescriptions.append({
-                "tier": "HIGH IMPACT",
-                "text": f"Target '{worst_kpi['name']}' within {g['name']} (weight: {g['W_i']}%, "
-                        f"current composite: {g['composite']}%). "
-                        f"This KPI (w_ij: {worst_kpi['w_ij']}%, score: {worst_kpi['score']}%) "
-                        f"has the largest gap in the highest-priority parameter. "
-                        f"Improving it to 70% would add approximately {potential_npi_gain} points to NPI.",
-                "parameter": g["name"],
-                "kpi": worst_kpi["name"],
-                "weighted_gap": g["weighted_gap"],
-            })
+                gain = (
+                    (g["W_i"] / 100.0)
+                    * (worst_kpi["w_ij"] / 100.0)
+                    * max(0.0, 0.70 - worst_kpi["score"] / 100.0)
+                )
+                potential_npi_gain = round(gain * 100, 1)
+                prescriptions.append({
+                    "tier": "HIGH IMPACT",
+                    "text": f"Target '{worst_kpi['name']}' within {g['name']} (weight: {g['W_i']}%, "
+                            f"current composite: {g['composite']}%). "
+                            f"This KPI (w_ij: {worst_kpi['w_ij']}%, score: {worst_kpi['score']}%) "
+                            f"has the largest gap within this parameter. "
+                            f"Raising it to 70% would add approximately {potential_npi_gain} points to NPI.",
+                    "parameter": g["name"],
+                    "kpi": worst_kpi["name"],
+                    "weighted_gap": g["weighted_gap"],
+                })
         else:
             prescriptions.append({
                 "tier": "HIGH IMPACT",
