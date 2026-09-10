@@ -69,7 +69,7 @@ def _adapt_engine_result(engine_result, discovery, client) -> EngineOutput:
 def _build_template_context(engine_output: EngineOutput, client_name: str, discovery_name: str) -> dict:
     processes_data = []
     for proc in engine_output.processes:
-        sorted_params = sorted(proc.parameters, key=lambda p: p.contribution)
+        sorted_params = sorted(proc.parameters, key=lambda p: p.contribution, reverse=True)
         processes_data.append({
             "name": proc.process_name,
             "npi_score": proc.npi_score,
@@ -105,7 +105,7 @@ def _build_template_context(engine_output: EngineOutput, client_name: str, disco
         "generated_at": datetime.utcnow().strftime("%B %d, %Y"),
         "overall_zone": engine_output.overall_zone,
         "overall_zone_color": {"RED": "#DC2626", "YELLOW": "#F59E0B", "GREEN": "#10B981"}[engine_output.overall_zone],
-        "trust_gate_passed": engine_output.rho_gate_passed,
+        "trust_gate_passed": not any(p.kill_switch_active for proc in engine_output.processes for p in proc.parameters),
         "process_count": len(engine_output.processes),
         "zone_counts": zone_counts,
         "processes": processes_data,
