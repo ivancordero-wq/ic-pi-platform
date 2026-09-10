@@ -275,7 +275,7 @@ def compute_npi(process_id, db):
                         f"has a weighted gap of {g['weighted_gap']} points. "
                         f"Score all KPIs in this parameter to identify the specific improvement target.",
                 "parameter": g["name"],
-                "kpi": "unscored",
+                "kpi": "not yet scored",
                 "weighted_gap": g["weighted_gap"],
             })
 
@@ -290,7 +290,7 @@ def compute_npi(process_id, db):
                             f"Performance is acceptable but trending toward the critical zone. "
                             f"Identify early warning indicators and establish intervention triggers.",
                     "parameter": pr["name"],
-                    "kpi": "multiple",
+                    "kpi": "all KPIs in this parameter",
                     "weighted_gap": 0,
                 })
                  # AI-Generated Project Suggestions (Prescriptions)
