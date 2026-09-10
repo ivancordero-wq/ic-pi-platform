@@ -105,8 +105,9 @@
 {% for proc in processes %}
 <h2>4. Prescriptions: {{ proc.name }}</h2>
 {% for rx in proc.prescriptions %}
-<div class="prescription {% if 'CRITICAL' in rx %}critical{% elif 'PREVENTIVE' in rx %}preventive{% endif %}">
-    {{ rx }}
+<div class="prescription {% if rx.tier == 'CRITICAL' %}critical{% elif rx.tier == 'PREVENTIVE' %}preventive{% endif %}">
+    <strong>{{ rx.tier }}</strong> &mdash; {{ rx.parameter }} / {{ rx.kpi }}<br>
+    {{ rx.text }}
 </div>
 {% endfor %}
 {% endfor %}
