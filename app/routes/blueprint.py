@@ -50,11 +50,11 @@ def _adapt_engine_result(engine_result, discovery, client) -> EngineOutput:
         npi_score=float(raw.get("npi_score", 0)) / 100.0,
         zone=zone,
         alpha_triggered=len(alerts) > 0,
-        tau_converged=True,
-        tau_rounds=1,
+        tau_converged=raw.get("tau_converged", False),
+        tau_rounds=int(raw.get("tau_rounds", 0)),
         parameters=params,
         trip_wire_flags=[str(a) for a in alerts],
-        prescriptions=[str(x) for x in raw.get("prescriptions", [])],
+        prescriptions=raw.get("prescriptions", []),
     )
 
     return EngineOutput(
