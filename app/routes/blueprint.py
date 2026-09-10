@@ -110,6 +110,7 @@ def _build_template_context(engine_output: EngineOutput, client_name: str, disco
         "process_count": len(engine_output.processes),
         "zone_counts": zone_counts,
         "processes": processes_data,
+        "ai_prescriptions": engine_output.ai_prescriptions,
     }
 
 
