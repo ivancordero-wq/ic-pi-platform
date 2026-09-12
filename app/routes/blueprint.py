@@ -164,13 +164,20 @@ def generate_full_blueprint(discovery_id: UUID, db: Session = Depends(get_db)):
             "votes_cast": len(votes),
             "relevant_marked": sum(1 for v in votes if v.relevant),
         })
+    voted_params = {}
+    for s in smes:
+        for v in db.query(models.SMEVote).filter(models.SMEVote.sme_id == s.id).all():
+            pid = str(v.parameter_id)
+            voted_params[pid] = voted_params.get(pid, False) or bool(v.relevant)
     
-
     engine_output = _adapt_engine_result(engine_result, discovery, client)
     context = _build_template_context(engine_output, client.name, discovery.name)
     context["client_country"] = client.country or ""
     context["smes"] = sme_rows
     context["alpha_alerts"] = json.loads(engine_result.result_json).get("alpha_alerts", [])
+    context["rho_total"] = len(voted_params)
+    context["rho_survived"] = sum(1 for kept in voted_params.values() if kept)
+    context["rho_removed"] = context["rho_total"] - context["rho_survived"]
     
 
     template = templates.get_template("full_blueprint.html")
