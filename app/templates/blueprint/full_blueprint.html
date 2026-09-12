@@ -33,6 +33,7 @@
     <p style="font-size: 10pt; color: #6b7280; letter-spacing: 2px;">IC-&#960;&trade; PERFORMANCE INDEX</p>
     <h1>Full Blueprint Report</h1>
     <p class="subtitle">{{ client_name }}</p>
+    {% if client_country %}<p class="subtitle" style="font-size: 11pt; color: #6b7280;">{{ client_country }}</p>{% endif %}
     <p class="subtitle">{{ discovery_name }}</p>
     <span class="zone-badge">{{ overall_zone }}</span>
     <p style="margin-top: 40px; font-size: 9pt; color: #9ca3af;">Generated: {{ generated_at }} | 13-Section Technical Report</p>
