@@ -408,7 +408,7 @@ def compute_npi(process_id, db):
 
 
 @router.get("/discovery/{discovery_id}/engine-run", response_class=HTMLResponse)
-async def engine_run_view(request: Request, discovery_id: str):
+async def engine_run_view(request: Request, discovery_id: str, rerun: int = 0):
     user = require_auth(request)
     if not user:
         return RedirectResponse(url="/", status_code=302)
@@ -423,6 +423,20 @@ async def engine_run_view(request: Request, discovery_id: str):
         if not process:
             return RedirectResponse(url="/dashboard", status_code=302)
 
+        existing = db.query(EngineResult).filter(
+            EngineResult.discovery_id == discovery_id,
+            EngineResult.measurement_label == "discovery_baseline"
+        ).first()
+
+        if existing and not rerun:
+            return templates.TemplateResponse("engine_run.html", {
+                "request": request,
+                "discovery": discovery,
+                "process": process,
+                "result": json.loads(existing.result_json),
+                "error": None,
+            })
+        
         result = compute_npi(str(process.id), db)
 
         if not result:
