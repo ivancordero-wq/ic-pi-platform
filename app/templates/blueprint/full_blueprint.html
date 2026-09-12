@@ -91,8 +91,7 @@
                 <td>{{ param.weight }}%</td>
                 <td>{{ param.kpi_score }}%</td>
                 <td>{{ param.contribution }}%</td>
-                <td>{% if param.kill_switch %}KILL{% endif %}{% if param.trip_wire %}TRIP{% endif %}{% if not param.kill_switch and not param.trip_wire %}ok{% endif %}</td>
-            </tr>
+                 <td>{% if param.kill_switch %}KILL{% endif %}{% if param.kill_switch and param.trip_wire %} &middot; {% endif %}{% if param.trip_wire %}TRIP{% endif %}{% if not param.kill_switch and not param.trip_wire %}ok{% endif %}</td>
             {% endfor %}
         </tbody>
     </table>
@@ -134,7 +133,7 @@
     <div class="flag-warning">
         <strong>{{ param.name }}</strong> ({{ proc.name }})<br>
         Score: {{ param.kpi_score }}% | Weight: {{ param.weight }}%<br>
-        Status: In warning band. Approaching critical.
+        Status: {% if param.kill_switch %}Floor breached &mdash; parameter contribution zeroed by the kill switch.{% else %}In warning band. Approaching the survival floor.{% endif %}
     </div>
     {% endif %}
     {% endfor %}
