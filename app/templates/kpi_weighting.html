@@ -76,7 +76,7 @@
                     <span class="text-xs text-slate-400">{{ block.kpi_count }} KPIs</span>
                 </div>
                 <div class="flex items-center gap-2">
-                    {% if block.all_converged or block.theta_l2.status == "locked" %}
+                    {% if block.theta_l2.status == "locked" %}
                     <span class="px-2 py-0.5 rounded text-xs bg-green-900/50 text-green-300 border border-green-700/50">All Locked</span>
                     {% else %}
                     <span class="text-xs text-green-400">{{ block.converged }} converged</span>
