@@ -128,6 +128,7 @@ def generate_executive_summary(discovery_id: UUID, db: Session = Depends(get_db)
 
     engine_output = _adapt_engine_result(engine_result, discovery, client)
     context = _build_template_context(engine_output, client.name, discovery.name)
+    context["client_country"] = client.country or ""
 
     template = templates.get_template("executive_summary.html")
     html_content = template.render(**context)
@@ -167,6 +168,7 @@ def generate_full_blueprint(discovery_id: UUID, db: Session = Depends(get_db)):
 
     engine_output = _adapt_engine_result(engine_result, discovery, client)
     context = _build_template_context(engine_output, client.name, discovery.name)
+    context["client_country"] = client.country or ""
     context["smes"] = sme_rows
     
 
@@ -197,4 +199,5 @@ def preview_blueprint(discovery_id: UUID, db: Session = Depends(get_db)):
     engine_output = _adapt_engine_result(engine_result, discovery, client)
 
     context = _build_template_context(engine_output, client.name, discovery.name)
+    context["client_country"] = client.country or ""
     return context
