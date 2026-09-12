@@ -30,7 +30,7 @@
 <body>
 
 <div class="cover">
-    <p style="font-size: 10pt; color: #6b7280; letter-spacing: 2px;">IC-pi PERFORMANCE INDEX</p>
+    <p style="font-size: 10pt; color: #6b7280; letter-spacing: 2px;">IC-&#960;&trade; PERFORMANCE INDEX</p>
     <h1>Full Blueprint Report</h1>
     <p class="subtitle">{{ client_name }}</p>
     <p class="subtitle">{{ discovery_name }}</p>
@@ -43,14 +43,14 @@
     <h2>Section 1: Executive Summary</h2>
     <p>This Discovery evaluated <strong>{{ process_count }}</strong> process(es) for <strong>{{ client_name }}</strong>.</p>
     <p>Overall verdict: <span class="zone-{{ overall_zone|lower }}">{{ overall_zone }}</span></p>
-    <p>Relevance Gate (ρ): {% if trust_gate_passed %}PASSED{% else %}NOT CONVERGED{% endif %}</p>
+    <p>Survival Gate (&alpha;): {% if trust_gate_passed %}ALL PARAMETERS CLEARED{% else %}BREACHED &mdash; kill switch active{% endif %}</p>
     <p>Zone distribution: RED={{ zone_counts.RED }}, YELLOW={{ zone_counts.YELLOW }}, GREEN={{ zone_counts.GREEN }}</p>
 </div>
 
 <div class="section">
     <h2>Section 2: Methodology Overview</h2>
     <div class="callout">
-        <strong>IC-pi Formula:</strong> NPI = Sum[W_i x Sum(w_ij x KPI_ij)]<br>
+        <strong>IC-&#960;&trade; Formula:</strong> NPI = &Sigma;[W_i &times; &alpha;_i &times; &Sigma;(w_ij &times; KPI_ij)]<br>
         <strong>Mechanisms:</strong> Relevance Gate (ρ) | Disagreement Tolerance (θ) | Trip Wire (τ) | Kill Switch (α) | Zone Classification<br>
         <strong>Basis:</strong> Non-compensatory decision science, Delphi consensus, statistical convergence
     </div>
