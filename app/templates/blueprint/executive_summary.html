@@ -36,9 +36,9 @@
         <span class="zone-badge">{{ overall_zone }}</span>
     </div>
     {% if trust_gate_passed %}
-    <p style="margin-top: 20px; font-size: 10pt; color: #10B981;">Trust Gate: PASSED</p>
+    <p style="margin-top: 20px; font-size: 10pt; color: #10B981;">Survival Gate (&alpha;): ALL PARAMETERS CLEARED</p>
     {% else %}
-    <p style="margin-top: 20px; font-size: 10pt; color: #DC2626;">Trust Gate: NOT CONVERGED</p>
+    <p style="margin-top: 20px; font-size: 10pt; color: #DC2626;">Survival Gate (&alpha;): BREACHED &mdash; kill switch active</p>
     {% endif %}
     <p class="meta">Generated: {{ generated_at }} | Processes: {{ process_count }}</p>
     <p class="meta">IC Commerce and Consulting | Pattison TX 77466</p>
