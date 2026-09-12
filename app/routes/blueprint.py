@@ -152,9 +152,23 @@ def generate_full_blueprint(discovery_id: UUID, db: Session = Depends(get_db)):
 
     discovery = db.query(models.Discovery).filter(models.Discovery.id == discovery_id).first()
     client = db.query(models.Client).filter(models.Client.id == discovery.client_id).first()
+    smes = db.query(models.SME).filter(models.SME.discovery_id == discovery.id).order_by(models.SME.name).all()
+    sme_rows = []
+    for s in smes:
+        votes = db.query(models.SMEVote).filter(models.SMEVote.sme_id == s.id).all()
+        sme_rows.append({
+            "name": s.name,
+            "role": s.role or "",
+            "department": s.department or "",
+            "votes_cast": len(votes),
+            "relevant_marked": sum(1 for v in votes if v.relevant),
+        })
+    
 
     engine_output = _adapt_engine_result(engine_result, discovery, client)
     context = _build_template_context(engine_output, client.name, discovery.name)
+    context["smes"] = sme_rows
+    
 
     template = templates.get_template("full_blueprint.html")
     html_content = template.render(**context)
