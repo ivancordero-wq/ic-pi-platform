@@ -128,17 +128,17 @@
 
 <div class="section">
     <h2>Section 8: Trip Wire (τ) Report</h2>
-    {% for proc in processes %}
-    {% for param in proc.parameters %}
-    {% if param.trip_wire %}
-    <div class="flag-warning">
-        <strong>{{ param.name }}</strong> ({{ proc.name }})<br>
-        Score: {{ param.kpi_score }}% | Weight: {{ param.weight }}%<br>
-        Status: {% if param.kill_switch %}Floor breached &mdash; parameter contribution zeroed by the kill switch.{% else %}In warning band. Approaching the survival floor.{% endif %}
-    </div>
-    {% endif %}
-    {% endfor %}
-    {% endfor %}
+    {% if alpha_alerts %}
+        {% for a in alpha_alerts %}
+        <div class="flag-warning">
+            <strong>{{ a.parameter }}</strong> (W_i {{ a.W_i }}%) &mdash; breaching KPI: {{ a.kpi_name }}<br>
+            Score: {{ a.score }} against &tau; floor {{ a.tau_floor }}<br>
+            Status: Floor breached &mdash; {{ a.impact }}% of the index zeroed by the kill switch.
+        </div>
+        {% endfor %}
+        {% else %}
+        <p><em>No trip wire breaches recorded.</em></p>
+        {% endif %}
 </div>
 
 {% for proc in processes %}
