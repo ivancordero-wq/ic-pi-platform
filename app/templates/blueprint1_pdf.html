@@ -66,9 +66,9 @@
 
 <h2><span class="section-num">4.</span> SME Panel Composition</h2>
 <table>
-    <tr><th>Name</th><th>Email</th><th>Role</th></tr>
+    <tr><th>Name</th><th>Role</th><th>Department</th></tr>
     {% for sme in smes %}
-    <tr><td>{{ sme.name }}</td><td>{{ sme.email }}</td><td>{{ sme.role }}</td></tr>
+    <tr><td>{{ sme.name }}</td><td>{{ sme.role }}</td><td>{{ sme.department or "&mdash;" }}</td></tr>
     {% endfor %}
 </table>
 
