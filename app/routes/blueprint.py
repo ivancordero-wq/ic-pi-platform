@@ -170,6 +170,7 @@ def generate_full_blueprint(discovery_id: UUID, db: Session = Depends(get_db)):
     context = _build_template_context(engine_output, client.name, discovery.name)
     context["client_country"] = client.country or ""
     context["smes"] = sme_rows
+    context["alpha_alerts"] = json.loads(engine_result.result_json).get("alpha_alerts", [])
     
 
     template = templates.get_template("full_blueprint.html")
