@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>IC-pi Blueprint 1 (Phase 1)</title>
+    <title>IC-&#960;&trade; Blueprint 1 (Phase 1)</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -49,22 +49,22 @@
     <p style="margin-top: 24px;"><span class="phase-badge">Phase 1 Deliverable</span></p>
 </div>
 
-<h2><span class="section-num">2.</span> Executive Summary</h2>
+<h2><span class="section-num">1.</span> Executive Summary</h2>
 <p>This Blueprint documents the <strong>performance model</strong> constructed during IC-&#960;&trade; Discovery Phase 1 for <strong>{{ process_name }}</strong> at {{ client_name }}.</p>
 <p>The model defines which parameters govern process performance, how much each matters, which KPIs measure each parameter, how to compute each KPI, and which KPIs have non-negotiable floors.</p>
-<p><strong>Next step:</strong> The client data team uses the measurement formulas and Standard Data Template to populate actual KPI values. Once populated, IC-pi runs Phase 2.</p>
+<p><strong>Next step:</strong> The client data team uses the measurement formulas and Standard Data Template to populate actual KPI values. Once populated, IC-&#960;&trade; runs Phase 2.</p>
 
-<h2><span class="section-num">3.</span> Methodology Overview</h2>
+<h2><span class="section-num">2.</span> Methodology Overview</h2>
 <p>IC-&#960;&trade; constructs a process-specific mathematical model through four governed mechanisms:</p>
 <table>
     <tr><th>Mechanism</th><th>Purpose</th><th>Method</th></tr>
-    <tr><td><strong>rho</strong></td><td>Parameter Relevance</td><td>Algorithmic voting gate</td></tr>
-    <tr><td><strong>theta</strong></td><td>Weight Validation</td><td>Modified Delphi with algorithmic convergence</td></tr>
-    <tr><td><strong>tau</strong></td><td>Trip Wire Floors</td><td>Designated authority calibration + leadership validation</td></tr>
-    <tr><td><strong>alpha</strong></td><td>Kill Switch</td><td>Non-compensatory breach enforcement</td></tr>
+    <tr><td><strong>&#961; (rho)</strong></td><td>Parameter Relevance</td><td>Algorithmic voting gate</td></tr>
+    <tr><td><strong>&#952; (theta)</strong></td><td>Weight Validation</td><td>Modified Delphi with algorithmic convergence</td></tr>
+    <tr><td><strong>&#964; (tau)</strong></td><td>Trip Wire Floors</td><td>Designated authority calibration + leadership validation</td></tr>
+    <tr><td><strong>&#945; (alpha)</strong></td><td>Kill Switch</td><td>Non-compensatory breach enforcement</td></tr>
 </table>
 
-<h2><span class="section-num">4.</span> SME Panel Composition</h2>
+<h2><span class="section-num">3.</span> SME Panel Composition</h2>
 <table>
     <tr><th>Name</th><th>Role</th><th>Department</th></tr>
     {% for sme in smes %}
@@ -72,7 +72,7 @@
     {% endfor %}
 </table>
 
-<h2><span class="section-num">5.</span> Parameter Universe</h2>
+<h2><span class="section-num">4.</span> Parameter Universe</h2>
 <p>{{ parameters|length }} parameters form the locked performance model.</p>
 <table>
     <tr><th>#</th><th>Parameter</th><th>Source</th><th>W_i</th></tr>
@@ -81,7 +81,7 @@
     {% endfor %}
 </table>
 
-<h2><span class="section-num">6.</span> Parameter Weights (W_i)</h2>
+<h2><span class="section-num">5.</span> Parameter Weights (W_i)</h2>
 {% for param in parameters %}
 <div style="display: flex; align-items: center; gap: 12px; margin: 8px 0;">
     <span style="width: 200px; font-size: 0.9rem;">{{ param.name }}</span>
@@ -92,7 +92,7 @@
 </div>
 {% endfor %}
 
-<h2><span class="section-num">7.</span> KPI Weights (w_ij)</h2>
+<h2><span class="section-num">6.</span> KPI Weights (w_ij)</h2>
 {% for param in parameters %}
 {% if param.kpis %}
 <h3>{{ param.name }} (W_i = {{ param.weight }}%)</h3>
@@ -104,7 +104,7 @@
 </table>
 {% endif %}
 {% endfor %}
-<h2><span class="section-num">8.</span> Tau Designation Summary</h2>
+<h2><span class="section-num">7.</span> &#964; (Tau) Designation Summary</h2>
 {% if tau_designations %}
 <table>
     <tr><th>KPI</th><th>Floor</th><th>Direction</th><th>Designated By</th></tr>
@@ -116,8 +116,8 @@
 <p>No trip wires designated for this Discovery.</p>
 {% endif %}
 
-<h2><span class="section-num">9.</span> Measurement Formulas</h2>
-<p>For each KPI, IC-pi provides a precise measurement formula. These tell the data team exactly how to compute each KPI from source data.</p>
+<h2><span class="section-num">8.</span> Measurement Formulas</h2>
+<p>For each KPI, IC-&#960;&trade; provides a precise measurement formula. These tell the data team exactly how to compute each KPI from source data.</p>
 {% for param in parameters %}
 {% if param.kpis %}
 <h3>{{ param.name }}</h3>
@@ -140,7 +140,7 @@
 {% endif %}
 {% endfor %}
 
-<h2><span class="section-num">10.</span> Data Collection Brief</h2>
+<h2><span class="section-num">9.</span> Data Collection Brief</h2>
 <p>Instructions for the client data team to populate the Standard Data Template.</p>
 <div class="brief-box">
     <p><strong>What to do:</strong></p><ol style="margin-left: 24px; margin-bottom: 12px;">
@@ -150,7 +150,7 @@
         <li>Enter the raw value in the Raw Value column (use the unit shown)</li>
         <li>Fill in Measurement Period</li>
         <li>Fill in Evidence Source (which system the data came from)</li>
-        <li>Return the completed template to your IC-pi consultant</li>
+        <li>Return the completed template to your IC-&#960;&trade; consultant</li>
     </ol>
 </div>
 <div class="brief-box">
