@@ -80,6 +80,8 @@ async def generate_formulas(request: Request, discovery_id: str):
                 kpi.formula_notes = item.get("formula_notes", "")
                 if item.get("unit"):
                     kpi.unit = item["unit"]
+                if item.get("unit_type"):
+                    kpi.unit_type = item["unit_type"].strip().lower()
                 updated += 1
 
         db.commit()
