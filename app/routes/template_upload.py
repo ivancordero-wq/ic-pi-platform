@@ -106,32 +106,32 @@ async def upload_template(request: Request, discovery_id: str, file: UploadFile 
                 skipped += 1
                 continue
 
-                anchor_for_check = db.query(KPIAnchor).filter(
-                    KPIAnchor.kpi_id == kpi.id
-                ).first()
+            anchor_for_check = db.query(KPIAnchor).filter(
+                KPIAnchor.kpi_id == kpi.id
+            ).first()
 
-                from app.models import TauDesignation
-                tau = db.query(TauDesignation).filter(
-                    TauDesignation.kpi_id == kpi.id
-                ).first()
+            from app.models import TauDesignation
+            tau = db.query(TauDesignation).filter(
+                TauDesignation.kpi_id == kpi.id
+            ).first()
 
-                v_errors, v_warnings = validate_value(
-                    str(kpi_name_cell),
-                    raw_value,
-                    kpi.unit,
-                    getattr(kpi, "unit_type", None),
-                    tau_floor=tau.tau_floor if tau else None,
-                    best_value=anchor_for_check.best_value if anchor_for_check else None,
-                    worst_value=anchor_for_check.worst_value if anchor_for_check else None,
+            v_errors, v_warnings = validate_value(
+                str(kpi_name_cell),
+                raw_value,
+                kpi.unit,
+                getattr(kpi, "unit_type", None),
+                tau_floor=tau.tau_floor if tau else None,
+                best_value=anchor_for_check.best_value if anchor_for_check else None,
+                worst_value=anchor_for_check.worst_value if anchor_for_check else None,
                 )
 
-                if v_errors:
-                    errors.extend(v_errors)
-                    skipped += 1
-                    continue
+            if v_errors:
+                errors.extend(v_errors)
+                skipped += 1
+                continue
 
-                if v_warnings:
-                    warnings.extend(v_warnings)
+            if v_warnings:
+                warnings.extend(v_warnings)
             # Get anchors (best/worst) from existing KPIAnchor
             anchor = db.query(KPIAnchor).filter(KPIAnchor.kpi_id == kpi.id).first()
 
