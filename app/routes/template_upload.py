@@ -14,6 +14,7 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from app.database import SessionLocal
 from app.models import Discovery, Process, Parameter, KPI, KPIScore, KPIAnchor
 from app.auth import decode_access_token
+from app.services.unit_validation import validate_value, unit_is_usable
 from openpyxl import load_workbook
 from io import BytesIO
 from datetime import datetime
@@ -67,6 +68,7 @@ async def upload_template(request: Request, discovery_id: str, file: UploadFile 
         updated = 0
         skipped = 0
         errors = []
+        warnings = []
 
         for row in ws.iter_rows(min_row=2, values_only=False):
             # Columns: Parameter, KPI Name, Formula, Unit, Measurement Period, Raw Value, Evidence Source, Notes
@@ -96,7 +98,40 @@ async def upload_template(request: Request, discovery_id: str, file: UploadFile 
                 errors.append("Invalid value for " + str(kpi_name_cell) + ": " + str(raw_value_cell))
                 skipped += 1
                 continue
+            if not unit_is_usable(kpi.unit, getattr(kpi, "unit_type", None)):
+                errors.append(
+                str(kpi_name_cell) + ": no valid unit on record, so it cannot be "
+                "scored. Regenerate the formulas first."
+                )
+                skipped += 1
+                continue
 
+                anchor_for_check = db.query(KPIAnchor).filter(
+                    KPIAnchor.kpi_id == kpi.id
+                ).first()
+
+                from app.models import TauDesignation
+                tau = db.query(TauDesignation).filter(
+                    TauDesignation.kpi_id == kpi.id
+                ).first()
+
+                v_errors, v_warnings = validate_value(
+                    str(kpi_name_cell),
+                    raw_value,
+                    kpi.unit,
+                    getattr(kpi, "unit_type", None),
+                    tau_floor=tau.tau_floor if tau else None,
+                    best_value=anchor_for_check.best_value if anchor_for_check else None,
+                    worst_value=anchor_for_check.worst_value if anchor_for_check else None,
+                )
+
+                if v_errors:
+                    errors.extend(v_errors)
+                    skipped += 1
+                    continue
+
+                if v_warnings:
+                    warnings.extend(v_warnings)
             # Get anchors (best/worst) from existing KPIAnchor
             anchor = db.query(KPIAnchor).filter(KPIAnchor.kpi_id == kpi.id).first()
 
@@ -110,10 +145,12 @@ async def upload_template(request: Request, discovery_id: str, file: UploadFile 
                     normalized = (raw_value - worst) / (best - worst) * 100.0
                     normalized = max(0.0, min(100.0, round(normalized, 1)))
             else:
-                # No anchors yet: store raw value as score (0-100 assumed)
-                # Consultant will need to set anchors on Screen 3F
-                normalized = max(0.0, min(100.0, round(raw_value, 1)))
-
+                errors.append(
+                        str(kpi_name_cell) + ": no Best/Worst anchors on record, so the raw "
+                        " value cannot be normalized. Set anchors on Screen 3F first."
+                    )
+                    skipped += 1
+                    continue
             # Build evidence text
             evidence_parts = [str(raw_value)]
             if evidence_cell:
@@ -143,15 +180,17 @@ async def upload_template(request: Request, discovery_id: str, file: UploadFile 
 
             updated += 1
 
-        discovery.status = "scored"
-        db.commit()
+        if updated > 0:
+                discovery.status = "scored"
+            db.commit()
 
-        return JSONResponse({
-            "success": True,
-            "updated": updated,
-            "skipped": skipped,
-            "errors": errors[:5],
-        })
+            return JSONResponse({
+                "success": True,
+                "updated": updated,
+                "skipped": skipped,
+                "errors": errors[:10],
+                "warnings": warnings[:10],
+            })
 
     except Exception as e:
         db.rollback()
