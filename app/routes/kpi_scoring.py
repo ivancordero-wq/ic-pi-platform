@@ -145,6 +145,8 @@ async def kpi_scoring_view(request: Request, discovery_id: str):
                     "id": str(kpi.id),
                     "name": kpi.name,
                     "description": kpi.description or "",
+                    "unit": kpi.unit or "",
+                    "unit_type": getattr(kpi, "unit_type", None) or "",
                     "w_ij": round(w_ij * 100, 1) if w_ij else None,
                     "has_tau": tau is not None,
                     "tau_floor": tau.tau_floor if tau else None,
