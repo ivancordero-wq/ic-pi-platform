@@ -21,7 +21,6 @@ def build_kpi_block(kpi_list):
         lines.append(str(i) + ". KPI: " + kpi["name"])
         lines.append("   Parameter: " + kpi["parameter_name"])
         lines.append("   Description: " + kpi.get("description", "N/A"))
-        lines.append("   Unit: " + kpi.get("unit", "N/A"))
         lines.append("")
     return "\n".join(lines)
 
@@ -46,7 +45,15 @@ def build_prompt(industry, process_name, kpi_block, country=""):
     parts.append("")
     parts.append("For each KPI below, provide:")
     parts.append("1. A precise MEASUREMENT FORMULA (how to compute it from raw data)")
-    parts.append("2. Brief NOTES (assumptions, edge cases, or data considerations)")
+    parts.append("2. The UNIT of the value the formula produces")
+    parts.append("3. Brief NOTES (assumptions, edge cases, or data considerations)")
+    parts.append("")
+    parts.append("UNIT RULES:")
+    parts.append("- The unit describes the RESULT of the formula, not the input data.")
+    parts.append("- A formula ending in x 100 produces percent, not a ratio.")
+    parts.append("- For durations, state the time base explicitly: minutes, hours or days.")
+    parts.append("- For monetary results, use the ISO currency code of " + country + " and the denominator, e.g. MXN per transaction.")
+    parts.append("- Never answer with a data source, a standard, or a provenance word. 'standard', 'regulation' and 'ai' are not units.")
     parts.append("")
     parts.append("The formula must be specific enough that a data analyst who has never")
     parts.append("seen this KPI can compute it from source data. Use standard notation:")
@@ -58,6 +65,8 @@ def build_prompt(industry, process_name, kpi_block, country=""):
     parts.append("Respond in valid JSON array format. Each element must have:")
     parts.append('- "kpi_index" (integer, matching the numbering above)')
     parts.append('- "formula" (string, the measurement formula)')
+    parts.append('- "unit" (string, the unit of the computed result)')
+    parts.append('- "unit_type" (string, exactly one of: percent, ratio, duration, currency, count, score, rate)')
     parts.append('- "formula_notes" (string, brief assumptions or notes)')
     parts.append("")
     parts.append("Return ONLY the JSON array, no other text.")
@@ -102,10 +111,12 @@ def generate_formulas_for_kpis(industry, process_name, kpi_list, country=""):
             idx = item.get("kpi_index", 0) - 1
             if 0 <= idx < len(kpi_list):
                 output.append({
-                    "kpi_id": kpi_list[idx]["id"],
-                    "formula": item.get("formula", ""),
-                    "formula_notes": item.get("formula_notes", ""),
-                })
+                        "kpi_id": kpi_list[idx]["id"],
+                        "formula": item.get("formula", ""),
+                        "unit": item.get("unit", ""),
+                        "unit_type": item.get("unit_type", ""),
+                        "formula_notes": item.get("formula_notes", ""),
+                    })
 
         return output
 
