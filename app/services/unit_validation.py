@@ -104,5 +104,7 @@ def validate_value(label, value, unit, unit_type, tau_floor=None,
                 label + ": " + str(value) + " falls well outside the declared range "
                 + str(low) + " to " + str(high) + "."
             )
-
+    if errors:
+        warnings = []
+    
     return errors, warnings
