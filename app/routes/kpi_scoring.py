@@ -18,6 +18,7 @@ from app.models import (
     ParameterWeight, KPIWeightLocked, TauDesignation, KPIAnchor
 )
 from app.auth import decode_access_token
+from app.services.unit_validation import validate_value, unit_is_usable
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
@@ -174,6 +175,8 @@ async def kpi_scoring_view(request: Request, discovery_id: str):
             "scored_count": scored_count,
             "below_tau_count": below_tau_count,
             "all_scored": all_scored,
+            "val_errors": request.query_params.getlist("err"),
+            "val_warnings": request.query_params.getlist("warn"),
         })
     finally:
         db.close()
@@ -191,6 +194,9 @@ async def save_kpi_scores(request: Request, discovery_id: str):
         process = db.query(Process).filter(Process.discovery_id == discovery.id).first()
 
         form_data = await request.form()
+        override = form_data.get("override_warnings") == "1"
+        errors = []
+        warnings = []
 
         parameters = db.query(Parameter).filter(Parameter.process_id == process.id).all()
 
@@ -230,10 +236,37 @@ async def save_kpi_scores(request: Request, discovery_id: str):
                 # Compute and save score
                 if actual_val and best_val and worst_val:
                     try:
-                        actual_float = float(actual_val)
-                        best_float = float(best_val)
-                        worst_float = float(worst_val)
+                        actual_float = float(str(actual_val).replace(",", "."))
+                        best_float = float(str(best_val).replace(",", "."))
+                        worst_float = float(str(worst_val).replace(",", "."))
                     except ValueError:
+                        errors.append(kpi.name + ": '" + str(actual_val) + "' is not a number.")
+                        continue
+
+                    if not unit_is_usable(kpi.unit, getattr(kpi, "unit_type", None)):
+                        errors.append(
+                            kpi.name + ": no valid unit on record, so it cannot be scored. "
+                            "Regenerate the formulas to populate the unit."
+                        )
+                        continue
+
+                    tau = db.query(TauDesignation).filter(
+                        TauDesignation.kpi_id == kpi.id
+                    ).first()
+
+                    e, w = validate_value(
+                        kpi.name,
+                        actual_float,
+                        kpi.unit,
+                        getattr(kpi, "unit_type", None),
+                        tau_floor=tau.tau_floor if tau else None,
+                        best_value=best_float,
+                        worst_value=worst_float,
+                    )
+                    errors.extend(e)
+                    warnings.extend(w)
+
+                    if e or (w and not override):
                         continue
 
                     normalized = compute_normalized_score(actual_float, best_float, worst_float)
