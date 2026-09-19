@@ -57,7 +57,6 @@ async def generate_formulas(request: Request, discovery_id: str):
                     "name": kpi.name,
                     "description": kpi.description or "",
                     "parameter_name": param.name,
-                    "unit": kpi.unit or "",
                 })
 
         if not kpi_list:
@@ -79,6 +78,8 @@ async def generate_formulas(request: Request, discovery_id: str):
             if kpi:
                 kpi.formula = item["formula"]
                 kpi.formula_notes = item.get("formula_notes", "")
+                if item.get("unit"):
+                    kpi.unit = item["unit"]
                 updated += 1
 
         db.commit()
