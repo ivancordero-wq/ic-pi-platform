@@ -149,8 +149,8 @@ async def upload_template(request: Request, discovery_id: str, file: UploadFile 
                         str(kpi_name_cell) + ": no Best/Worst anchors on record, so the raw "
                         " value cannot be normalized. Set anchors on Screen 3F first."
                     )
-                    skipped += 1
-                    continue
+                skipped += 1
+                continue
             # Build evidence text
             evidence_parts = [str(raw_value)]
             if evidence_cell:
