@@ -43,7 +43,7 @@
     <p style="color: #4f46e5; font-weight: bold; letter-spacing: 2px;">IC-&#960;&trade; BLUEPRINT 1</p>
     <p style="color: #1e40af; font-size: 0.9rem; letter-spacing: 1px;">PHASE 1: THE MODEL</p>
     <h1>{{ process_name }}</h1>
-    <p class="subtitle">{{ client_name }}</p>
+    <p class="subtitle">{{ client_name }}{% if client_country %} &middot; {{ client_country }}{% endif %}</p>
     <p class="meta">Generated: {{ generated_at }}</p>
     <p class="meta">IC Commerce and Consulting | Patent Pending</p>
     <p style="margin-top: 24px;"><span class="phase-badge">Phase 1 Deliverable</span></p>
