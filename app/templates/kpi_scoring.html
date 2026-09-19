@@ -14,7 +14,22 @@
         <p class="text-slate-400">{{ discovery.name }}</p>
         <p class="text-xs text-slate-500 mt-1">Enter Best, Worst, and Actual values for each KPI. The system auto-computes a normalized 0-100 performance score. Any unit works (hours, %, ppm, $, count).</p>
     </div>
+    {% if val_errors %}
+  <div class="bg-red-900/30 border border-red-600/50 rounded-lg p-4 mb-4">
+    <h3 class="text-sm font-semibold text-red-300 uppercase tracking-wide mb-2">Rejected &mdash; not saved</h3><ul class="text-sm text-red-200 space-y-1 list-disc list-inside">
+      {% for msg in val_errors %}<li>{{ msg }}</li>{% endfor %}
+    </ul>
+  </div>
+  {% endif %}
 
+  {% if val_warnings %}
+  <div class="bg-amber-900/30 border border-amber-600/50 rounded-lg p-4 mb-4">
+    <h3 class="text-sm font-semibold text-amber-300 uppercase tracking-wide mb-2">Suspicious &mdash; confirm before saving</h3><ul class="text-sm text-amber-200 space-y-1 list-disc list-inside">
+      {% for msg in val_warnings %}<li>{{ msg }}</li>{% endfor %}
+    </ul>
+    <p class="text-xs text-amber-300/70 mt-2">These values were not saved. Tick the box next to Save Progress to accept them as entered.</p>
+  </div>
+  {% endif %}
     <!-- Rules Callout -->
     <div class="bg-slate-800/60 border border-yellow-700/40 rounded-lg p-4 mb-6">
         <h3 class="text-sm font-semibold text-yellow-300 uppercase tracking-wide mb-2">Scoring Rules</h3>
@@ -110,7 +125,12 @@
                             <td class="p-2">
                                 <p class="text-white text-sm">{{ kpi.name }}</p>
                                 {% if kpi.has_tau %}
-                                <p class="text-red-400 text-xs">Tau: {{ kpi.tau_floor }}</p>
+                                <p class="text-red-400 text-xs">Tau: {{ kpi.tau_floor }}{% if kpi.unit %} {{ kpi.unit }}{% endif %}</p>
+                                {% endif %}
+                                {% if kpi.unit %}
+                                <p class="text-slate-400 text-xs">Unit: <span class="text-cyan-300">{{ kpi.unit }}</span></p>
+                                {% else %}
+                                <p class="text-amber-400 text-xs">No unit on record &mdash; cannot be scored</p>
                                 {% endif %}
                             </td>
                             <td class="text-center p-2 text-cyan-300 text-sm">
@@ -172,6 +192,11 @@
 
         <!-- CTAs -->
         <div class="flex gap-4 justify-end mt-6">
+            <label class="flex items-center gap-2 text-xs text-slate-400 mr-2">
+        <input type="checkbox" name="override_warnings" value="1"
+               class="w-4 h-4 bg-slate-900 border-slate-600 rounded">
+        Accept flagged values as entered
+      </label>
             <button type="submit"
                     class="px-6 py-2.5 bg-yellow-600 hover:bg-yellow-500 text-white font-semibold rounded-lg transition">
                 Save Progress
