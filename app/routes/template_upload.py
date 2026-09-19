@@ -181,16 +181,16 @@ async def upload_template(request: Request, discovery_id: str, file: UploadFile 
             updated += 1
 
         if updated > 0:
-                discovery.status = "scored"
-            db.commit()
+            discovery.status = "scored"
+        db.commit()
 
-            return JSONResponse({
-                "success": True,
-                "updated": updated,
-                "skipped": skipped,
-                "errors": errors[:10],
-                "warnings": warnings[:10],
-            })
+        return JSONResponse({
+            "success": True,
+             "updated": updated,
+             "skipped": skipped,
+             "errors": errors[:10],
+             "warnings": warnings[:10],
+        })
 
     except Exception as e:
         db.rollback()
