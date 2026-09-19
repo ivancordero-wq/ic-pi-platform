@@ -21,6 +21,7 @@ from app.models import (
 )
 from app.auth import decode_access_token
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
@@ -122,12 +123,13 @@ def gather_blueprint1_data(discovery_id: str):
         return {
             "discovery": discovery,
             "client_name": client.name if client else "Unknown",
+            "client_country": client.country if client and client.country else "",
             "process_name": process.name if process else "Unknown",
             "process": process,
             "parameters": param_data,
             "tau_designations": tau_data,
             "smes": sme_data,
-            "generated_at": datetime.utcnow().strftime("%B %d, %Y"),
+            "generated_at": datetime.now(ZoneInfo("America/Chicago")).strftime("%B %d, %Y"),
         }
 
     finally:
