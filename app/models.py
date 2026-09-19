@@ -87,6 +87,7 @@ class KPI(Base):
     name = Column(String(300), nullable=False)
     description = Column(Text, nullable=True)
     unit = Column(String(50), nullable=True)
+    unit_type = Column(String(20), nullable=True)
     formula = Column(Text, nullable=True)
     data_source = Column(String(300), nullable=True)
     data_scenario = Column(Integer, nullable=True)
