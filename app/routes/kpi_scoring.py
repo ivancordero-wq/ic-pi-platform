@@ -292,12 +292,21 @@ async def save_kpi_scores(request: Request, discovery_id: str):
                         )
                         db.add(new_score)
 
-        discovery.status = "scored"
+        if not errors:
+            discovery.status = "scored"
         db.commit()
 
-        return RedirectResponse(
-            url=f"/discovery/{discovery_id}/kpi-scoring",
-            status_code=302
-        )
+        from urllib.parse import urlencode
+        params = []
+        for msg in errors[:10]:
+            params.append(("err", msg))
+        for msg in warnings[:10]:
+            params.append(("warn", msg))
+
+        url = f"/discovery/{discovery_id}/kpi-scoring"
+        if params:
+            url = url + "?" + urlencode(params)
+
+        return RedirectResponse(url=url, status_code=302)
     finally:
         db.close()
