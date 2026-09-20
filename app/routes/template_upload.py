@@ -125,13 +125,11 @@ async def upload_template(request: Request, discovery_id: str, file: UploadFile 
                 worst_value=anchor_for_check.worst_value if anchor_for_check else None,
                 )
 
-            if v_errors:
-                errors.extend(v_errors)
-                skipped += 1
-                continue
-
-            if v_warnings:
-                warnings.extend(v_warnings)
+            if v_errors or v_warnings:
+                    errors.extend(v_errors)
+                    warnings.extend(v_warnings)
+                    skipped += 1
+                    continue
             # Get anchors (best/worst) from existing KPIAnchor
             anchor = db.query(KPIAnchor).filter(KPIAnchor.kpi_id == kpi.id).first()
 
