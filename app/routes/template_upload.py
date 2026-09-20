@@ -188,8 +188,8 @@ async def upload_template(request: Request, discovery_id: str, file: UploadFile 
             "success": True,
              "updated": updated,
              "skipped": skipped,
-             "errors": errors[:10],
-             "warnings": warnings[:10],
+             "errors": errors,
+             "warnings": warnings,
         })
 
     except Exception as e:
