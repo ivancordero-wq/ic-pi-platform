@@ -93,6 +93,7 @@ async def tau_designation_view(request: Request, discovery_id: str):
                     "tau_rationale": tau.rationale if tau else None,
                     "tau_designated_by": tau.designated_by if tau else None,
                      "tau_direction": tau.direction if tau else "higher_is_better",
+                     "unit_confirmed": tau.unit_confirmed if tau else None,
                 })
                 total_kpis += 1
 
