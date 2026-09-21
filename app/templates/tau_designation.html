@@ -66,7 +66,6 @@
                             <th class="text-center p-2 text-slate-400 font-medium">Direction</th>
                             <th class="text-left p-2 text-slate-400 font-medium">Rationale</th>
                             <th class="text-center p-2 text-slate-400 font-medium">Assigned SME</th>
-                            <th class="text-center p-2 text-slate-400 font-medium">Assigned SME</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -94,7 +93,12 @@
                                        step="0.01"
                                        value="{% if kpi.tau_floor is not none %}{{ kpi.tau_floor }}{% endif %}"
                                        placeholder="floor"
-                                       class="w-20 h-8 text-center bg-slate-900 border border-slate-600 rounded text-white text-sm focus:border-red-400 focus:outline-none">
+                                class="w-20 h-8 text-center bg-slate-900 border border-slate-600 rounded text-white text-sm focus:border-red-400 focus:outline-none">
+                                {% if kpi.unit and kpi.unit not in ['standard','regulation','ai','expert'] %}
+                                <span class="block text-xs text-slate-400 mt-1">{{ kpi.unit }}</span>
+                                {% else %}    
+                                <span class="block text-xs text-amber-400 mt-1">no unit</span>
+                                {% endif %}
                             </td>
                             <td class="p-2">
                                 <input type="text"
