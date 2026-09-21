@@ -80,7 +80,7 @@
                 <p class="text-sm text-gray-400 mb-2 font-medium">Designated Authority Proposal:</p>
                 {% for p in item.proposals %}
                 <div class="flex items-baseline gap-3 mb-2">
-                    <span class="text-white font-semibold text-lg">{{ p.floor }}</span>
+                    <span class="text-white font-semibold text-lg">{{ p.floor }}{% if item.unit %} <span class="text-sm font-normal text-slate-400">{{ item.unit }}</span>{% endif %}</span>
                     <span class="text-gray-400 text-sm">proposed by <span class="text-indigo-400">{{ p.sme_name }}</span></span>
                     <span class="text-xs bg-gray-700 text-gray-300 px-2 py-0.5 rounded">{{ p.source }}</span>
                 </div>
@@ -94,7 +94,7 @@
             <!-- Current designation (if any) -->
             {% if item.current_floor %}
             <p class="text-xs text-gray-500 mb-3">
-                Current floor: <span class="text-yellow-400 font-semibold">{{ item.current_floor }}</span>
+                Current floor: <span class="text-yellow-400 font-semibold">{{ item.current_floor }}{% if item.unit %} {{ item.unit }}{% endif %}</span>
                 (set by {{ item.designated_by or "consultant" }})
             </p>
             {% endif %}
@@ -102,7 +102,7 @@
             <!-- Validated floor input -->
             <div>
                 <label class="block text-sm text-gray-400 mb-1" for="validated_floor_{{ item.kpi_id }}">
-                    Confirmed Floor Value <span class="text-red-400">*</span>
+                Confirmed Floor Value{% if item.unit %} <span class="text-slate-400 font-normal">(in {{ item.unit }})</span>{% else %} <span class="text-amber-400 font-normal">(unit unknown)</span>{% endif %} <span class="text-red-400">*</span>
                 </label>
                 <input type="number" step="any" name="validated_floor_{{ item.kpi_id }}" 
                        id="validated_floor_{{ item.kpi_id }}"
