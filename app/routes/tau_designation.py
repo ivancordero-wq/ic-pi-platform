@@ -85,7 +85,8 @@ async def tau_designation_view(request: Request, discovery_id: str):
                     "id": str(kpi.id),
                     "name": kpi.name,
                     "description": kpi.description or "",
-                    "source": kpi.unit or "standard",
+                    "unit": kpi.unit or "",
+                    "unit_type": getattr(kpi, "unit_type", None) or "",
                     "w_ij": round(w_ij * 100, 1) if w_ij else None,
                     "has_tau": tau is not None,
                     "tau_floor": tau.tau_floor if tau else None,
@@ -234,6 +235,7 @@ async def tau_validation_view(request: Request, discovery_id: str):
             validation_data.append({
                 "kpi_id": td.kpi_id,
                 "kpi_name": kpi.name if kpi else "Unknown",
+                "unit": (kpi.unit or "") if kpi else "",
                 "parameter_name": parameter.name if parameter else "Unknown",
                 "direction": td.direction,
                 "current_floor": td.tau_floor,
