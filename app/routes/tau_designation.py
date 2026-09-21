@@ -130,6 +130,7 @@ async def save_tau_designations(request: Request, discovery_id: str):
         process = db.query(Process).filter(Process.discovery_id == discovery.id).first()
 
         form_data = await request.form()
+        unconfirmed = []
 
         # Get all KPIs for this process
         parameters = db.query(Parameter).filter(Parameter.process_id == process.id).all()
@@ -154,6 +155,14 @@ async def save_tau_designations(request: Request, discovery_id: str):
                         tau_float = float(tau_value)
                     except ValueError:
                         continue
+                    
+                    if not form_data.get(f"unit_confirm_{kpi_id}"):
+                        unconfirmed.append(kpi.name)
+                        continue
+                    
+                    if not kpi.unit or kpi.unit in ("standard", "regulation", "ai", "expert"):
+                        unconfirmed.append(kpi.name)
+                        continue
 
                     if existing:
                         existing.tau_floor = tau_float
@@ -162,6 +171,8 @@ async def save_tau_designations(request: Request, discovery_id: str):
                         existing.designated_at = datetime.utcnow()
                         existing.direction = form_data.get(f"direction_{kpi_id}") or "higher_is_better"
                         existing.assigned_sme_id = str(form_data.get(f"assigned_sme_{kpi_id}")) if form_data.get(f"assigned_sme_{kpi_id}") else None
+                        existing.unit_confirmed = kpi.unit
+                        existing.unit_confirmed_at = datetime.now(ZoneInfo("America/Chicago"))
                     else:
                         tau = TauDesignation(
                             kpi_id=kpi_id,
@@ -172,6 +183,8 @@ async def save_tau_designations(request: Request, discovery_id: str):
                             designated_by=designated_by or "leadership",
                             direction=form_data.get(f"direction_{kpi_id}") or "higher_is_better",
                             assigned_sme_id=str(form_data.get(f"assigned_sme_{kpi_id}")) if form_data.get(f"assigned_sme_{kpi_id}") else None,
+                            unit_confirmed=kpi.unit,
+                            unit_confirmed_at=datetime.now(ZoneInfo("America/Chicago")),
                         )
                         db.add(tau)
                 else:
@@ -183,7 +196,7 @@ async def save_tau_designations(request: Request, discovery_id: str):
         db.commit()
 
         return RedirectResponse(
-            url=f"/discovery/{discovery_id}/tau-designation",
+            url=f"/discovery/{discovery_id}/tau-designation?unconfirmed={len(unconfirmed)}",
             status_code=302
         )
     finally:
