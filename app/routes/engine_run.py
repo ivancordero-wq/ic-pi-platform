@@ -13,7 +13,8 @@ from openai import OpenAI
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from datetime import datetime
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 import json
 
 from app.database import SessionLocal
@@ -441,12 +442,59 @@ async def engine_run_view(request: Request, discovery_id: str, rerun: int = 0):
         ).first()
 
         if existing and not rerun:
+            # Staleness guard. A stored result is only trustworthy while no
+            # input has changed since it was computed. Scores and tau floors
+            # are the two inputs that move after a run; locked weights do not
+            # change without a new Discovery.
+            kpi_ids = [
+                k.id for k in db.query(KPI).join(
+                    Parameter, KPI.parameter_id == Parameter.id
+                ).filter(Parameter.process_id == process.id).all()
+            ]
+
+            def _as_utc(dt, assume_local=False):
+                if dt is None:
+                    return None
+                if dt.tzinfo is None:
+                    tz = ZoneInfo("America/Chicago") if assume_local else timezone.utc
+                    dt = dt.replace(tzinfo=tz)
+                return dt.astimezone(timezone.utc)
+
+            run_at = _as_utc(existing.generated_at)
+            changed = []
+
+            if kpi_ids and run_at:
+                for s in db.query(KPIScore).filter(
+                    KPIScore.kpi_id.in_(kpi_ids)
+                ).all():
+                    when = _as_utc(s.scored_at)
+                    if when and when > run_at:
+                        changed.append(("a measured score", when))
+
+                for t in db.query(TauDesignation).filter(
+                    TauDesignation.kpi_id.in_(kpi_ids)
+                ).all():
+                    when = _as_utc(t.designated_at, assume_local=True)
+                    if when and when > run_at:
+                        changed.append(("a trip wire floor", when))
+
+            stale_reason = None
+            if changed:
+                changed.sort(key=lambda x: x[1], reverse=True)
+                stale_reason = changed[0][0]
+
             return templates.TemplateResponse("engine_run.html", {
                 "request": request,
                 "discovery": discovery,
                 "process": process,
                 "result": json.loads(existing.result_json),
                 "error": None,
+                "stale_reason": stale_reason,
+                "stale_count": len(changed),
+                "run_at_local": run_at.astimezone(
+                    ZoneInfo("America/Chicago")
+                ).strftime("%b %d, %Y at %I:%M %p") if run_at else "",
+                "rerun_url": "/discovery/" + str(discovery_id) + "/engine-run?rerun=1",
             })
         
         result = compute_npi(str(process.id), db)
