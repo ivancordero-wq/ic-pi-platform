@@ -16,7 +16,11 @@ def seed_default_users():
         # Check if consultant already exists
         existing = db.query(User).filter(User.email == "maria@iccommerce.us").first()
         if existing:
-            print("[SEED] Test consultant already exists. Skipping.")
+            existing.hashed_password = hash_password("icpi2026")
+            existing.is_active = True
+            existing.role = "consultant"
+            db.commit()
+            print("[SEED] Test consultant password re-hashed to the known value.")
             return
 
         # Create test consultant
