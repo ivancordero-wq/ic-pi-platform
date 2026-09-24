@@ -155,7 +155,7 @@
                         class="w-full h-8 px-1 bg-slate-900 border border-slate-600 rounded text-white text-xs">
                     <option value="">— Select —</option>
                     {% for sme in smes %}
-                    <option value="{{ sme.id }}" {% if kpi.assigned_sme_id and kpi.assigned_sme_id == sme.id %}selected{% endif %}>
+                    <option value="{{ sme.id }}" {% if kpi.assigned_sme_id and kpi.assigned_sme_id == sme.id|string %}selected{% endif %}>
                         {{ sme.name }}
                     </option>
                     {% endfor %}
