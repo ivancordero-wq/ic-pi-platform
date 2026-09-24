@@ -452,29 +452,31 @@ async def engine_run_view(request: Request, discovery_id: str, rerun: int = 0):
                 ).filter(Parameter.process_id == process.id).all()
             ]
 
-            def _as_utc(dt, assume_local=False):
+            def _naive(dt):
+                # Everything is compared as local wall time. Aware values are
+                # converted; naive values are already local by convention.
                 if dt is None:
                     return None
-                if dt.tzinfo is None:
-                    tz = ZoneInfo("America/Chicago") if assume_local else timezone.utc
-                    dt = dt.replace(tzinfo=tz)
-                return dt.astimezone(timezone.utc)
-
-            run_at = _as_utc(existing.generated_at)
+                if dt.tzinfo is not None:
+                    dt = dt.astimezone(
+                        ZoneInfo("America/Chicago")
+                    ).replace(tzinfo=None)
+                return dt
+            run_at = _naive(existing.generated_at)
             changed = []
 
             if kpi_ids and run_at:
                 for s in db.query(KPIScore).filter(
                     KPIScore.kpi_id.in_(kpi_ids)
                 ).all():
-                    when = _as_utc(s.scored_at)
+                    when = _naive(s.scored_at)
                     if when and when > run_at:
                         changed.append(("a measured score", when))
 
                 for t in db.query(TauDesignation).filter(
                     TauDesignation.kpi_id.in_(kpi_ids)
                 ).all():
-                    when = _as_utc(t.designated_at, assume_local=True)
+                    when = _naive(t.designated_at)
                     if when and when > run_at:
                         changed.append(("a trip wire floor", when))
 
@@ -491,9 +493,7 @@ async def engine_run_view(request: Request, discovery_id: str, rerun: int = 0):
                 "error": None,
                 "stale_reason": stale_reason,
                 "stale_count": len(changed),
-                "run_at_local": run_at.astimezone(
-                    ZoneInfo("America/Chicago")
-                ).strftime("%b %d, %Y at %I:%M %p") if run_at else "",
+                "run_at_local": run_at.strftime("%b %d, %Y at %I:%M %p") if run_at else "",
                 "rerun_url": "/discovery/" + str(discovery_id) + "/engine-run?rerun=1",
             })
         
@@ -518,7 +518,7 @@ async def engine_run_view(request: Request, discovery_id: str, rerun: int = 0):
             existing.overall_zone = result["zone"]
             existing.trust_gate_passed = len(result["alpha_alerts"]) == 0
             existing.result_json = json.dumps(result)
-            existing.generated_at = datetime.utcnow()
+            existing.generated_at = datetime.now(ZoneInfo("America/Chicago")).replace(tzinfo=None)
         else:
             engine_result = EngineResult(
                 discovery_id=discovery_id,
