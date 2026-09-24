@@ -251,23 +251,35 @@ def compute_npi(process_id, db):
                     worst_kpi = kpi
 
         if worst_kpi:
-                gain = (
-                    (g["W_i"] / 100.0)
-                    * (worst_kpi["w_ij"] / 100.0)
-                    * max(0.0, 0.70 - worst_kpi["score"] / 100.0)
-                )
-                potential_npi_gain = round(gain * 100, 1)
-                prescriptions.append({
-                    "tier": "HIGH IMPACT",
-                    "text": f"Target '{worst_kpi['name']}' within {g['name']} (weight: {g['W_i']}%, "
-                            f"current composite: {g['composite']}%). "
-                            f"This KPI (w_ij: {worst_kpi['w_ij']}%, score: {worst_kpi['score']}%) "
-                            f"has the largest gap within this parameter. "
-                            f"Raising it to 70% would add approximately {potential_npi_gain} points to NPI.",
-                    "parameter": g["name"],
-                    "kpi": worst_kpi["name"],
-                    "weighted_gap": g["weighted_gap"],
-                })
+            # Sensitivity, not forecast. Two figures, both derived from the
+            # locked weights: how much NPI moves per 10 points gained on this
+            # KPI, and the most this KPI can ever contribute (its ceiling).
+            # No target score is invented here; the target belongs to leadership.
+            npi_per_10_points = round(
+                (g["W_i"] / 100.0) * (worst_kpi["w_ij"] / 100.0) * 10.0, 2
+            )
+            ceiling = round(
+                (g["W_i"] / 100.0)
+                * (worst_kpi["w_ij"] / 100.0)
+                * max(0.0, 100.0 - worst_kpi["score"]),
+                1,
+            )
+            prescriptions.append({
+                "tier": "HIGH IMPACT",
+                "text": f"Target '{worst_kpi['name']}' within {g['name']} (weight: {g['W_i']}%, "
+                        f"current composite: {g['composite']}%). "
+                        f"This KPI (w_ij: {worst_kpi['w_ij']}%, score: {worst_kpi['score']}%) "
+                        f"has the largest gap within this parameter. "
+                        f"Leverage: every 10 points gained on this KPI adds "
+                        f"{npi_per_10_points} points to NPI. "
+                        f"Ceiling: closing the full gap adds {ceiling} points, and no more. "
+                        f"The target and the timeline are leadership's to set.",
+                "parameter": g["name"],
+                "kpi": worst_kpi["name"],
+                "npi_per_10_points": npi_per_10_points,
+                "ceiling": ceiling,
+                "weighted_gap": g["weighted_gap"],
+            })
         else:
             prescriptions.append({
                 "tier": "HIGH IMPACT",
