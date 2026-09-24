@@ -44,6 +44,7 @@ from app.routes.engine_run import router as engine_run_router
 from app.routes.sme_tau import sme_tau_router
 from app.routes.admin import admin_router
 from app.routes.output_engine import output_engine_router
+from app.routes.leadership_portal import router as leadership_portal_router
 from app.routes.prior_initiatives import router as prior_initiatives_router
 
 
@@ -117,6 +118,7 @@ app.include_router(engine_run_router)
 app.include_router(sme_tau_router)
 app.include_router(admin_router)
 app.include_router(output_engine_router)
+app.include_router(leadership_portal_router)  # Screen 5: Leadership Portal
 app.include_router(prior_initiatives_router)
 
 # API routes
