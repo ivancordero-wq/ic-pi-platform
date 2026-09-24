@@ -311,7 +311,7 @@
           {{ t_label }}
         </span>
         <div class="space-y-3">
-          {% for item in tier.items %}
+          {% for item in tier["items"] %}
           <div class="border-l-2 {{ t_rail }} pl-4 py-1">
             <p class="text-sm text-slate-200 leading-relaxed">{{ item.text }}</p>
             {% if item.parameter %}
