@@ -102,6 +102,23 @@
         </div>
     </div>
     <!-- Alpha Kill Switch Alerts -->
+    {% if stale_reason %}
+    <div class="mb-6 rounded-xl border-2 border-amber-500 bg-amber-500/10 p-5">
+      <p class="text-base font-bold text-amber-200 mb-1">
+        These results are out of date
+      </p>
+      <p class="text-sm text-amber-100/90">
+        {{ stale_count }} input{% if stale_count != 1 %}s have{% else %} has{% endif %}
+        changed since this result was computed on {{ run_at_local }}
+        (most recently {{ stale_reason }}).
+        The numbers below were calculated before that change and do not reflect it.
+      </p>
+      <a href="{{ rerun_url }}"
+         class="inline-block mt-4 px-5 py-2.5 rounded-lg bg-amber-400 text-navy-900 text-sm font-semibold hover:bg-amber-300 transition">
+        Run the engine again
+      </a>
+    </div>
+    {% endif %}
     {% if result.alpha_alerts %}
     <div class="bg-red-900/20 border border-red-700/50 rounded-lg p-4 mb-6">
         <h3 class="text-red-400 font-semibold text-sm uppercase mb-3">Alpha Kill Switch Active</h3>
