@@ -1,0 +1,415 @@
+{% extends "base.html" %}
+
+{% block title %}Performance Portal &middot; {{ client_name }}{% endblock %}
+
+{% block content %}
+<div class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-8">
+
+  <!-- ================= HEADER ================= -->
+  <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
+    <div>
+      <p class="text-xs uppercase tracking-[0.2em] text-slate-500 mb-2">
+        IC-&#960;&trade; Performance Portal
+      </p>
+      <h1 class="text-2xl sm:text-3xl font-semibold text-white leading-tight">
+        {{ process.name if process else (discovery.name or 'Process') }}
+      </h1>
+      <p class="text-sm text-slate-400 mt-1">
+        {{ client_name }}{% if client_country %} &middot; {{ client_country }}{% endif %}
+      </p>
+    </div>
+
+    <div class="text-left sm:text-right">
+      {% if measured_on %}
+        <p class="text-xs uppercase tracking-wider text-slate-500">Last measurement</p>
+        <p class="text-sm text-slate-300">{{ measured_on }}</p>
+        {% if days_stale is not none %}
+          {% if days_stale > 120 %}
+            <span class="inline-block mt-2 px-2 py-0.5 rounded text-xs font-medium bg-amber-500/15 text-amber-300 border border-amber-500/30">
+              {{ days_stale }} days old
+            </span>
+          {% else %}
+            <span class="inline-block mt-2 px-2 py-0.5 rounded text-xs font-medium bg-slate-700/50 text-slate-400 border border-slate-600/50">
+              {{ days_stale }} days ago
+            </span>
+          {% endif %}
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ================= PROCESS SELECTOR ================= -->
+  {% if siblings and siblings|length > 1 %}
+  <div class="mb-6">
+    <label for="processSelect" class="block text-xs uppercase tracking-wider text-slate-500 mb-2">
+      Process
+    </label>
+    <select id="processSelect"
+            class="w-full sm:w-auto bg-navy-800 border border-slate-700 text-slate-200 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-slate-500">
+      {% for s in siblings %}
+        <option value="/leadership/{{ s.id }}" {% if s.current %}selected{% endif %}>
+          {{ s.process_name }}
+        </option>
+      {% endfor %}
+    </select>
+  </div>
+  {% endif %}
+
+  {% if not has_result %}
+
+  <!-- ================= EMPTY STATE ================= -->
+  <div class="bg-navy-800/60 border border-slate-700 rounded-2xl p-10 text-center">
+    <div class="zone-dots justify-center mb-5">
+      <span class="zone-dot zone-dot-red"></span>
+      <span class="zone-dot zone-dot-yellow"></span>
+      <span class="zone-dot zone-dot-green"></span>
+    </div>
+    <h2 class="text-lg font-semibold text-white mb-2">No measurement on record yet</h2>
+    <p class="text-sm text-slate-400 max-w-md mx-auto">
+      This portal activates once the first measurement cycle has been run and
+      the model has produced an index score. Your consultant will confirm when
+      the baseline is in place.
+    </p>
+  </div>
+
+  {% else %}
+
+  <!-- ================= 2. SURVIVAL GATE BANNER ================= -->
+  {% if alpha_alerts %}
+  <div class="mb-8 rounded-2xl border-2 border-red-500 bg-red-500/10 overflow-hidden">
+    <div class="bg-red-500/20 px-5 sm:px-6 py-4 border-b border-red-500/40">
+      <p class="text-base sm:text-lg font-bold text-red-200 tracking-wide">
+        Survival Gate (&alpha;): BREACHED
+      </p>
+      <p class="text-xs text-red-300/80 mt-1">
+        {{ alpha_alerts|length }}
+        parameter{% if alpha_alerts|length != 1 %}s{% endif %}
+        contribute nothing to the index until the condition below is restored.
+      </p>
+    </div>
+    <div class="divide-y divide-red-500/20">
+      {% for a in alpha_alerts %}
+      <div class="px-5 sm:px-6 py-4">
+        <p class="text-sm font-semibold text-white">{{ a.parameter }}</p>
+        <p class="text-sm text-red-200/90 mt-1">
+          <span class="font-medium">{{ a.kpi_name }}</span>
+          scored <span class="font-semibold">{{ a.score }}</span>
+          against a declared floor of <span class="font-semibold">{{ a.tau_floor }}</span>
+          {% if a.raw_tau is defined and a.raw_tau is not none %}
+            <span class="text-red-300/60">(&tau; floor as declared: {{ a.raw_tau }})</span>
+          {% endif %}
+        </p>
+        <p class="text-xs text-red-300/70 mt-2">
+          Weight withheld from the index: <span class="font-semibold">{{ a.impact }}%</span>
+        </p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ================= 1. INDEX + ZONE CARD ================= -->
+  {% if zone == 'GREEN' %}
+    {% set zone_text = 'text-zone-green' %}
+    {% set zone_border = 'border-zone-green' %}
+    {% set zone_bg = 'bg-green-500/10' %}
+  {% elif zone == 'YELLOW' %}
+    {% set zone_text = 'text-zone-yellow' %}
+    {% set zone_border = 'border-zone-yellow' %}
+    {% set zone_bg = 'bg-yellow-500/10' %}
+  {% else %}
+    {% set zone_text = 'text-zone-red' %}
+    {% set zone_border = 'border-zone-red' %}
+    {% set zone_bg = 'bg-red-500/10' %}
+  {% endif %}
+
+  <div class="mb-8 rounded-2xl border-2 {{ zone_border }} {{ zone_bg }} p-6 sm:p-8">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+      <div>
+        <p class="text-xs uppercase tracking-[0.2em] text-slate-400 mb-3">Current zone</p>
+        <p class="text-5xl sm:text-6xl font-bold {{ zone_text }} leading-none">{{ zone }}</p>
+      </div>
+      <div class="sm:text-right">
+        <p class="text-xs uppercase tracking-[0.2em] text-slate-400 mb-3">Index score</p>
+        <p class="text-4xl sm:text-5xl font-semibold text-white leading-none">
+          {{ npi if npi is not none else 'n/a' }}<span class="text-2xl text-slate-400">%</span>
+        </p>
+      </div>
+    </div>
+
+    <!-- Zone strip -->
+    <div class="mt-8">
+      <div class="relative h-3 rounded-full overflow-hidden bg-navy-900 flex">
+        <div style="width: {{ red_floor }}%" class="bg-zone-red/70"></div>
+        <div style="width: {{ (green_target - red_floor)|round(1) }}%" class="bg-zone-yellow/70"></div>
+        <div style="width: {{ (100 - green_target)|round(1) }}%" class="bg-zone-green/70"></div>
+        <div class="absolute top-[-6px] h-[24px] w-[3px] bg-white rounded-full shadow-lg"
+             style="left: {{ marker_pct }}%"></div>
+      </div>
+      <div class="flex justify-between text-xs text-slate-500 mt-2">
+        <span>0</span>
+        <span>Red floor {{ red_floor }}</span>
+        <span>Aspiration {{ green_target }}</span>
+        <span>100</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 4. ZONE TREND ================= -->
+  <div class="mb-8 bg-navy-800/60 border border-slate-700 rounded-2xl p-5 sm:p-6">
+    <div class="flex items-baseline justify-between mb-5">
+      <h2 class="text-sm uppercase tracking-wider text-slate-400">Index over time</h2>
+      <span class="text-xs text-slate-500">
+        {{ cycles }} measurement{% if cycles != 1 %}s{% endif %} on record
+      </span>
+    </div>
+
+    {% if cycles < 2 %}
+      <div class="py-8 text-center">
+        <p class="text-sm text-slate-400">
+          A trajectory appears after the second measurement cycle.
+        </p>
+        <p class="text-xs text-slate-500 mt-1">
+          The baseline is the reference point, not yet a trend.
+        </p>
+      </div>
+    {% else %}
+      <svg viewBox="0 0 400 200" class="w-full h-56" preserveAspectRatio="none">
+        <!-- Zone bands -->
+        <rect x="{{ bands.left }}" y="{{ bands.green_y }}" width="{{ bands.width }}"
+              height="{{ bands.green_h }}" fill="#22c55e" opacity="0.10" />
+        <rect x="{{ bands.left }}" y="{{ bands.yellow_y }}" width="{{ bands.width }}"
+              height="{{ bands.yellow_h }}" fill="#eab308" opacity="0.10" />
+        <rect x="{{ bands.left }}" y="{{ bands.red_y }}" width="{{ bands.width }}"
+              height="{{ bands.red_h }}" fill="#ef4444" opacity="0.10" />
+
+        <!-- Threshold lines -->
+        <line x1="{{ bands.left }}" y1="{{ bands.green_y }}" x2="{{ bands.right }}"
+              y2="{{ bands.green_y }}" stroke="#22c55e" stroke-width="0.7"
+              stroke-dasharray="4 3" opacity="0.6" />
+        <line x1="{{ bands.left }}" y1="{{ bands.red_y }}" x2="{{ bands.right }}"
+              y2="{{ bands.red_y }}" stroke="#ef4444" stroke-width="0.7"
+              stroke-dasharray="4 3" opacity="0.6" />
+
+        <!-- Axes -->
+        <line x1="{{ bands.left }}" y1="{{ bands.top }}" x2="{{ bands.left }}"
+              y2="{{ bands.bottom }}" stroke="#475569" stroke-width="0.7" />
+        <line x1="{{ bands.left }}" y1="{{ bands.bottom }}" x2="{{ bands.right }}"
+              y2="{{ bands.bottom }}" stroke="#475569" stroke-width="0.7" />
+
+        <!-- Y labels -->
+        <text x="{{ bands.left - 6 }}" y="{{ bands.top + 4 }}" text-anchor="end"
+              fill="#64748b" font-size="8">100</text>
+        <text x="{{ bands.left - 6 }}" y="{{ bands.green_y + 3 }}" text-anchor="end"
+              fill="#22c55e" font-size="8">{{ green_target }}</text>
+        <text x="{{ bands.left - 6 }}" y="{{ bands.red_y + 3 }}" text-anchor="end"
+              fill="#ef4444" font-size="8">{{ red_floor }}</text>
+        <text x="{{ bands.left - 6 }}" y="{{ bands.bottom + 3 }}" text-anchor="end"
+              fill="#64748b" font-size="8">0</text>
+
+        <!-- Trend line -->
+        {% if polyline %}
+        <polyline points="{{ polyline }}" fill="none" stroke="#e2e8f0"
+                  stroke-width="1.6" stroke-linejoin="round" />
+        {% endif %}
+
+        <!-- Points -->
+        {% for p in points %}
+          {% if p.plotted %}
+            {% if p.zone == 'GREEN' %}{% set dot = '#22c55e' %}
+            {% elif p.zone == 'YELLOW' %}{% set dot = '#eab308' %}
+            {% else %}{% set dot = '#ef4444' %}{% endif %}
+            <circle cx="{{ p.x }}" cy="{{ p.y }}" r="3.2" fill="{{ dot }}"
+                    stroke="#0f172a" stroke-width="1" />
+            <text x="{{ p.x }}" y="{{ p.y - 8 }}" text-anchor="middle"
+                  fill="#cbd5e1" font-size="8">{{ p.npi }}</text>
+          {% endif %}
+        {% endfor %}
+      </svg>
+
+      <div class="flex justify-between mt-3 text-xs text-slate-500">
+        {% for p in points %}
+          <span class="text-center flex-1">{{ p.date or p.label }}</span>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- ================= 3. PARAMETER BREAKDOWN ================= -->
+  <div class="mb-8 bg-navy-800/60 border border-slate-700 rounded-2xl overflow-hidden">
+    <div class="px-5 sm:px-6 py-4 border-b border-slate-700">
+      <h2 class="text-sm uppercase tracking-wider text-slate-400">Parameter breakdown</h2>
+      <p class="text-xs text-slate-500 mt-1">Tap a column heading to sort.</p>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm" id="paramTable">
+        <thead class="bg-navy-900/60 text-slate-400">
+          <tr>
+            <th data-sort="text"   class="text-left px-4 sm:px-6 py-3 font-medium cursor-pointer select-none hover:text-white">Parameter</th>
+            <th data-sort="number" class="text-right px-4 py-3 font-medium cursor-pointer select-none hover:text-white">Weight W<sub>i</sub></th>
+            <th data-sort="number" class="text-right px-4 py-3 font-medium cursor-pointer select-none hover:text-white">Composite</th>
+            <th data-sort="number" class="text-right px-4 py-3 font-medium cursor-pointer select-none hover:text-white">Contribution</th>
+            <th data-sort="text"   class="text-center px-4 sm:px-6 py-3 font-medium cursor-pointer select-none hover:text-white">Signal</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-700/60">
+          {% for p in parameters %}
+          <tr class="hover:bg-navy-900/40">
+            <td class="px-4 sm:px-6 py-3 text-slate-200">{{ p.name }}</td>
+            <td class="px-4 py-3 text-right text-slate-300" data-value="{{ p.W_i }}">{{ p.W_i }}%</td>
+            <td class="px-4 py-3 text-right text-slate-300" data-value="{{ p.composite_score }}">{{ p.composite_score }}%</td>
+            <td class="px-4 py-3 text-right text-slate-300" data-value="{{ p.contribution }}">{{ p.contribution }}</td>
+            <td class="px-4 sm:px-6 py-3 text-center" data-value="{{ p.signal }}">
+              {% if p.signal == 'KILL' %}
+                <span class="inline-block px-2 py-0.5 rounded text-xs font-semibold bg-red-500/20 text-red-300 border border-red-500/40">
+                  &alpha; BREACHED
+                </span>
+              {% elif p.signal == 'Low' %}
+                <span class="inline-block px-2 py-0.5 rounded text-xs font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                  LOW
+                </span>
+              {% else %}
+                <span class="inline-block px-2 py-0.5 rounded text-xs font-semibold bg-green-500/15 text-green-300 border border-green-500/30">
+                  OK
+                </span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ================= 5. PRESCRIPTIONS ================= -->
+  {% if prescription_tiers %}
+  <div class="mb-8 bg-navy-800/60 border border-slate-700 rounded-2xl p-5 sm:p-6">
+    <h2 class="text-sm uppercase tracking-wider text-slate-400 mb-5">Recommendations</h2>
+
+    {% for tier in prescription_tiers %}
+      {% if tier.tier == 'CRITICAL' %}
+        {% set t_label = 'Critical' %}
+        {% set t_class = 'bg-red-500/20 text-red-300 border-red-500/40' %}
+        {% set t_rail  = 'border-l-red-500' %}
+      {% elif tier.tier == 'HIGH IMPACT' %}
+        {% set t_label = 'High impact' %}
+        {% set t_class = 'bg-amber-500/15 text-amber-300 border-amber-500/30' %}
+        {% set t_rail  = 'border-l-amber-500' %}
+      {% elif tier.tier == 'PREVENTIVE' %}
+        {% set t_label = 'Preventive' %}
+        {% set t_class = 'bg-sky-500/15 text-sky-300 border-sky-500/30' %}
+        {% set t_rail  = 'border-l-sky-500' %}
+      {% else %}
+        {% set t_label = 'Improvement' %}
+        {% set t_class = 'bg-slate-600/30 text-slate-300 border-slate-500/40' %}
+        {% set t_rail  = 'border-l-slate-500' %}
+      {% endif %}
+
+      <div class="mb-6 last:mb-0">
+        <span class="inline-block px-2 py-0.5 mb-3 rounded text-xs font-semibold border {{ t_class }}">
+          {{ t_label }}
+        </span>
+        <div class="space-y-3">
+          {% for item in tier.items %}
+          <div class="border-l-2 {{ t_rail }} pl-4 py-1">
+            <p class="text-sm text-slate-200 leading-relaxed">{{ item.text }}</p>
+            {% if item.parameter %}
+            <p class="text-xs text-slate-500 mt-1.5">{{ item.parameter }}</p>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- ================= PROJECT SUGGESTIONS ================= -->
+  {% if ai_prescriptions %}
+  <div class="mb-8 bg-navy-800/60 border border-slate-700 rounded-2xl p-5 sm:p-6">
+    <h2 class="text-sm uppercase tracking-wider text-slate-400 mb-1">Candidate projects</h2>
+    <p class="text-xs text-slate-500 mb-5">
+      Model-generated starting points, for discussion with your consultant.
+    </p>
+    <div class="space-y-5">
+      {% for rx in ai_prescriptions %}
+      <div class="border-l-2 border-l-slate-600 pl-4">
+        <p class="text-sm font-medium text-white">{{ rx.kpi }}</p>
+        <p class="text-xs text-slate-500 mb-2">
+          {{ rx.parameter }}
+          {% if rx.W_i is not none %} &middot; W<sub>i</sub> {{ rx.W_i }}%{% endif %}
+        </p>
+        <p class="text-sm text-slate-300 whitespace-pre-line leading-relaxed">{{ rx.projects }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ================= 6. BLUEPRINT ACCESS ================= -->
+  <div class="mb-8 bg-navy-800/60 border border-slate-700 rounded-2xl p-5 sm:p-6">
+    <h2 class="text-sm uppercase tracking-wider text-slate-400 mb-4">Blueprint</h2>
+    <div class="flex flex-col sm:flex-row gap-3">
+      <a href="{{ exec_summary_url }}"
+         class="flex-1 text-center px-5 py-3 rounded-lg bg-white text-navy-900 text-sm font-semibold hover:bg-slate-200 transition">
+        Executive Summary (PDF)
+      </a>
+      <a href="{{ full_blueprint_url }}"
+         class="flex-1 text-center px-5 py-3 rounded-lg border border-slate-600 text-slate-200 text-sm font-semibold hover:bg-navy-900/60 transition">
+        Full Blueprint (PDF)
+      </a>
+    </div>
+  </div>
+
+  {% endif %}
+
+  <!-- ================= FOOTER ================= -->
+  <div class="pt-6 border-t border-slate-800">
+    <p class="text-xs text-slate-500 leading-relaxed">
+      This portal is read-only. Index parameters, thresholds (&theta;) and trip wire
+      floors (&tau;) are set through the facilitated Discovery process and cannot be
+      changed here. Viewed {{ viewed_at }}.
+    </p>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Process selector
+  var sel = document.getElementById("processSelect");
+  if (sel) {
+    sel.addEventListener("change", function () {
+      if (this.value) { window.location.href = this.value; }
+    });
+  }
+
+  // Sortable parameter table
+  var table = document.getElementById("paramTable");
+  if (table) {
+    var headers = table.querySelectorAll("thead th");
+    headers.forEach(function (th, index) {
+      var dir = 1;
+      th.addEventListener("click", function () {
+        var kind = th.getAttribute("data-sort");
+        var tbody = table.querySelector("tbody");
+        var rows = Array.prototype.slice.call(tbody.querySelectorAll("tr"));
+        rows.sort(function (a, b) {
+          var ca = a.children[index];
+          var cb = b.children[index];
+          var va = ca.getAttribute("data-value") || ca.textContent.trim();
+          var vb = cb.getAttribute("data-value") || cb.textContent.trim();
+          if (kind === "number") {
+            return (parseFloat(va) - parseFloat(vb)) * dir;
+          }
+          return va.localeCompare(vb) * dir;
+        });
+        rows.forEach(function (r) { tbody.appendChild(r); });
+        dir = -dir;
+      });
+    });
+  }
+</script>
+{% endblock %}
