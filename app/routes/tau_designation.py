@@ -15,7 +15,7 @@ from zoneinfo import ZoneInfo
 from app.database import SessionLocal
 from app.models import (
     Discovery, Process, Parameter, KPI,
-    ParameterWeight, KPIWeightLocked, TauDesignation, SmeTauProposal, SME
+    ParameterWeight, KPIWeightLocked, TauDesignation, SmeTauProposal, SME, KPIAnchor,
 )
 from app.auth import decode_access_token
 
@@ -93,7 +93,8 @@ async def tau_designation_view(request: Request, discovery_id: str):
                     "tau_floor": tau.tau_floor if tau else None,
                     "tau_rationale": tau.rationale if tau else None,
                     "tau_designated_by": tau.designated_by if tau else None,
-                     "tau_direction": tau.direction if tau else "higher_is_better",
+                    "tau_direction": tau.direction if tau else None,
+                        "assigned_sme_id": str(tau.assigned_sme_id) if tau and tau.assigned_sme_id else None,
                      "unit_confirmed": tau.unit_confirmed if tau else None,
                 })
                 total_kpis += 1
@@ -131,8 +132,10 @@ async def save_tau_designations(request: Request, discovery_id: str):
 
         form_data = await request.form()
         unconfirmed = []
+        no_direction = []
+        conflicts = []
+        saved = 0
 
-        # Get all KPIs for this process
         parameters = db.query(Parameter).filter(Parameter.process_id == process.id).all()
 
         for param in parameters:
@@ -144,8 +147,8 @@ async def save_tau_designations(request: Request, discovery_id: str):
                 tau_value = form_data.get(f"tau_{kpi_id}")
                 rationale = form_data.get(f"rationale_{kpi_id}")
                 designated_by = form_data.get(f"designated_by_{kpi_id}")
+                direction = form_data.get(f"direction_{kpi_id}")
 
-                # Check existing
                 existing = db.query(TauDesignation).filter(
                     TauDesignation.kpi_id == kpi_id
                 ).first()
@@ -155,21 +158,34 @@ async def save_tau_designations(request: Request, discovery_id: str):
                         tau_float = float(tau_value)
                     except ValueError:
                         continue
-                    
+
                     if not form_data.get(f"unit_confirm_{kpi_id}"):
                         unconfirmed.append(kpi.name)
                         continue
-                    
+
                     if not kpi.unit or kpi.unit in ("standard", "regulation", "ai", "expert"):
                         unconfirmed.append(kpi.name)
                         continue
+
+                    # No default. A critical KPI must carry an explicit direction.
+                    if direction not in ("higher_is_better", "lower_is_better"):
+                        no_direction.append(kpi.name)
+                        continue
+
+                    # Cross-check direction against the KPI's own Best/Worst anchors.
+                    anchor = db.query(KPIAnchor).filter(KPIAnchor.kpi_id == kpi.id).first()
+                    if anchor and anchor.best_value is not None and anchor.worst_value is not None:
+                        implied = "higher_is_better" if anchor.best_value > anchor.worst_value else "lower_is_better"
+                        if implied != direction:
+                            conflicts.append(kpi.name)
+                            continue
 
                     if existing:
                         existing.tau_floor = tau_float
                         existing.rationale = rationale or None
                         existing.designated_by = designated_by or "leadership"
-                        existing.designated_at = datetime.utcnow()
-                        existing.direction = form_data.get(f"direction_{kpi_id}") or "higher_is_better"
+                        existing.designated_at = datetime.now(ZoneInfo("America/Chicago"))
+                        existing.direction = direction
                         existing.assigned_sme_id = str(form_data.get(f"assigned_sme_{kpi_id}")) if form_data.get(f"assigned_sme_{kpi_id}") else None
                         existing.unit_confirmed = kpi.unit
                         existing.unit_confirmed_at = datetime.now(ZoneInfo("America/Chicago"))
@@ -181,14 +197,14 @@ async def save_tau_designations(request: Request, discovery_id: str):
                             tau_floor=tau_float,
                             rationale=rationale or None,
                             designated_by=designated_by or "leadership",
-                            direction=form_data.get(f"direction_{kpi_id}") or "higher_is_better",
+                            direction=direction,
                             assigned_sme_id=str(form_data.get(f"assigned_sme_{kpi_id}")) if form_data.get(f"assigned_sme_{kpi_id}") else None,
                             unit_confirmed=kpi.unit,
                             unit_confirmed_at=datetime.now(ZoneInfo("America/Chicago")),
                         )
                         db.add(tau)
+                    saved += 1
                 else:
-                    # Unchecked: remove tau if it existed
                     if existing:
                         db.delete(existing)
 
@@ -196,12 +212,17 @@ async def save_tau_designations(request: Request, discovery_id: str):
         db.commit()
 
         return RedirectResponse(
-            url=f"/discovery/{discovery_id}/tau-designation?unconfirmed={len(unconfirmed)}",
+            url=(
+                f"/discovery/{discovery_id}/tau-designation"
+                f"?saved={saved}"
+                f"&unconfirmed={len(unconfirmed)}"
+                f"&no_direction={len(no_direction)}"
+                f"&conflicts={len(conflicts)}"
+            ),
             status_code=302
         )
     finally:
         db.close()
-
 @router.get("/discovery/{discovery_id}/tau-validation", response_class=HTMLResponse)
 async def tau_validation_view(request: Request, discovery_id: str):
     """Phase 2: Show SME proposals for leadership validation."""
