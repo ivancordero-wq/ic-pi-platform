@@ -8,8 +8,9 @@
   <!-- ================= HEADER ================= -->
   <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
     <div>
-      <p class="text-xs uppercase tracking-[0.2em] text-slate-500 mb-2">
-        IC-&#960;&trade; Performance Portal
+      <p class="text-xs tracking-[0.2em] text-slate-500 mb-2">
+        IC-&#960;&trade; <span class="uppercase">Performance Portal</span>
+      </p>
       </p>
       <h1 class="text-2xl sm:text-3xl font-semibold text-white leading-tight">
         {{ process.name if process else (discovery.name or 'Process') }}
@@ -84,7 +85,7 @@
       <p class="text-xs text-red-300/80 mt-1">
         {{ alpha_alerts|length }}
         parameter{% if alpha_alerts|length != 1 %}s{% endif %}
-        contribute nothing to the index until the condition below is restored.
+        contribute{% if alpha_alerts|length == 1 %}s{% endif %} nothing to the index until the condition below is restored.
       </p>
     </div>
     <div class="divide-y divide-red-500/20">
