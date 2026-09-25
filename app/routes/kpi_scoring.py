@@ -72,6 +72,7 @@ async def kpi_scoring_view(request: Request, discovery_id: str):
         total_kpis = 0
         scored_count = 0
         below_tau_count = 0
+        flagged_count = 0
 
         for param in parameters:
             pw = next((lp for lp in locked_params if str(lp.parameter_id) == str(param.id)), None)
@@ -141,7 +142,48 @@ async def kpi_scoring_view(request: Request, discovery_id: str):
                                 below_tau = True
                                 below_tau_count += 1
 
-                kpi_list.append({
+              # Audit stored values, not only new input. A value that entered
+                # before validation existed, or through an override, stays wrong
+                # forever and quietly zeroes its parameter. Re-check on every load.
+                data_errors = []
+                data_warnings = []
+
+                if actual_value is not None:
+                    if not unit_is_usable(kpi.unit, getattr(kpi, "unit_type", None)):
+                        data_errors.append(
+                            kpi.name + ": no valid unit on record, so this score "
+                            "cannot be trusted."
+                        )
+                    else:
+                        data_errors, data_warnings = validate_value(
+                            kpi.name,
+                            actual_value,
+                            kpi.unit,
+                            getattr(kpi, "unit_type", None),
+                            tau_floor=tau.tau_floor if tau else None,
+                            best_value=anchor.best_value if anchor else None,
+                            worst_value=anchor.worst_value if anchor else None,
+                        )
+
+                    # Off-scale: a value past its own anchors pins the score at
+                    # 0 or 100, which makes any floor comparison meaningless.
+                    if anchor and anchor.best_value != anchor.worst_value:
+                        low = min(anchor.best_value, anchor.worst_value)
+                        high = max(anchor.best_value, anchor.worst_value)
+                        if actual_value < low or actual_value > high:
+                            data_warnings.append(
+                                kpi.name + ": measured " + str(actual_value)
+                                + " sits outside the declared Best/Worst range ("
+                                + str(low) + " to " + str(high) + "), so the score "
+                                "is pinned at " + str(normalized_score) + "."
+                            )
+
+                if data_errors or data_warnings:
+                    flagged_count += 1
+
+
+
+              kpi_list.append({
                     "id": str(kpi.id),
                     "name": kpi.name,
                     "description": kpi.description or "",
@@ -157,6 +199,8 @@ async def kpi_scoring_view(request: Request, discovery_id: str):
                     "evidence": evidence,
                     "is_scored": is_scored,
                     "below_tau": below_tau,
+                    "data_errors": data_errors,
+                    "data_warnings": data_warnings,
                 })
                 total_kpis += 1
 
@@ -176,6 +220,7 @@ async def kpi_scoring_view(request: Request, discovery_id: str):
             "total_kpis": total_kpis,
             "scored_count": scored_count,
             "below_tau_count": below_tau_count,
+            "flagged_count": flagged_count,
             "all_scored": all_scored,
             "val_errors": request.query_params.getlist("err"),
             "val_warnings": request.query_params.getlist("warn"),
