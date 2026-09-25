@@ -43,7 +43,7 @@
     </div>
 
     <!-- Status Bar -->
-    <div class="grid grid-cols-3 gap-3 mb-6">
+    <div class="grid grid-cols-4 gap-3 mb-6">
         <div class="bg-slate-800 rounded-lg p-3 text-center">
             <p class="text-xs text-slate-400 uppercase">Total KPIs</p>
             <p class="text-xl font-bold text-white">{{ total_kpis }}</p>
@@ -56,6 +56,10 @@
             <p class="text-xs text-slate-400 uppercase">Below Tau (Breach)</p>
             <p class="text-xl font-bold {% if below_tau_count > 0 %}text-red-400{% else %}text-slate-500{% endif %}">{{ below_tau_count }}</p>
         </div>
+        <div class="bg-slate-800 rounded-lg p-3 text-center">
+                    <p class="text-xs text-slate-400 uppercase">Flagged Values</p>
+                    <p class="text-xl font-bold {% if flagged_count > 0 %}text-amber-400{% else %}text-slate-500{% endif %}">{{ flagged_count }}</p>
+                </div>
     </div>
 
    <!-- Upload Populated Template -->
@@ -154,6 +158,16 @@
                                 <p class="text-slate-400 text-xs">Unit: <span class="text-cyan-300">{{ kpi.unit }}</span></p>
                                 {% else %}
                                 <p class="text-amber-400 text-xs">No unit on record &mdash; cannot be scored</p>
+                                {% endif %}
+                                {% if kpi.data_errors %}
+                                <div class="mt-1 text-xs font-semibold text-red-400">
+                                  {% for msg in kpi.data_errors %}<div>{{ msg }}</div>{% endfor %}
+                                </div>
+                                {% endif %}
+                                {% if kpi.data_warnings %}
+                                <div class="mt-1 text-xs font-semibold text-amber-400">
+                                  {% for msg in kpi.data_warnings %}<div>{{ msg }}</div>{% endfor %}
+                                </div>
                                 {% endif %}
                             </td>
                             <td class="text-center p-2 text-cyan-300 text-sm">
