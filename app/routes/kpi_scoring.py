@@ -182,8 +182,7 @@ async def kpi_scoring_view(request: Request, discovery_id: str):
                     flagged_count += 1
 
 
-
-              kpi_list.append({
+                kpi_list.append({
                     "id": str(kpi.id),
                     "name": kpi.name,
                     "description": kpi.description or "",
