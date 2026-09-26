@@ -435,7 +435,7 @@ def compute_npi(process_id, db, measurement_label="discovery_baseline"):
 
 
 @router.get("/discovery/{discovery_id}/engine-run", response_class=HTMLResponse)
-async def engine_run_view(request: Request, discovery_id: str, rerun: int = 0):
+async def engine_run_view(request: Request, discovery_id: str, rerun: int = 0, cycle: str = "discovery_baseline"):
     user = require_auth(request)
     if not user:
         return RedirectResponse(url="/", status_code=302)
@@ -452,7 +452,7 @@ async def engine_run_view(request: Request, discovery_id: str, rerun: int = 0):
 
         existing = db.query(EngineResult).filter(
             EngineResult.discovery_id == discovery_id,
-            EngineResult.measurement_label == "discovery_baseline"
+            EngineResult.measurement_label == cycle
         ).first()
 
         if existing and not rerun:
@@ -511,7 +511,7 @@ async def engine_run_view(request: Request, discovery_id: str, rerun: int = 0):
                 "rerun_url": "/discovery/" + str(discovery_id) + "/engine-run?rerun=1",
             })
         
-        result = compute_npi(str(process.id), db)
+        result = compute_npi(str(process.id), db, cycle)
 
         if not result:
             return templates.TemplateResponse("engine_run.html", {
@@ -525,7 +525,7 @@ async def engine_run_view(request: Request, discovery_id: str, rerun: int = 0):
         # Save result to DB
         existing = db.query(EngineResult).filter(
             EngineResult.discovery_id == discovery_id,
-            EngineResult.measurement_label == "discovery_baseline"
+            EngineResult.measurement_label == cycle
         ).first()
 
         if existing:
@@ -536,7 +536,7 @@ async def engine_run_view(request: Request, discovery_id: str, rerun: int = 0):
         else:
             engine_result = EngineResult(
                 discovery_id=discovery_id,
-                measurement_label="discovery_baseline",
+                measurement_label=cycle,
                 overall_zone=result["zone"],
                 trust_gate_passed=len(result["alpha_alerts"]) == 0,
                 result_json=json.dumps(result),
