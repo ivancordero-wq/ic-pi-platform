@@ -144,7 +144,7 @@
     });
     </script>
     <!-- Form -->
-    <form method="POST" action="/discovery/{{ discovery.id }}/kpi-scoring">
+    <form method="POST" action="/discovery/{{ discovery.id }}/kpi-scoring?cycle={{ cycle }}">
 
         {% for block in param_data %}
         <div class="mb-6">
