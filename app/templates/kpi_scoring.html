@@ -42,6 +42,27 @@
         </ol>
     </div>
 
+    <!-- Measurement Cycle -->
+        <div class="bg-slate-800/60 border border-purple-700/40 rounded-lg p-4 mb-6">
+            <div class="flex flex-wrap items-center gap-4">
+                <div>
+                    <p class="text-xs text-slate-400 uppercase tracking-wide mb-1">Measurement cycle</p>
+                    <p class="text-sm font-semibold text-purple-300">{{ cycle }}</p>
+                </div>
+                {% if known_cycles|length > 1 %}
+                <div class="flex flex-wrap items-center gap-2">
+                    {% for c in known_cycles %}
+                    <a href="?cycle={{ c }}" class="text-xs px-3 py-1 rounded-lg {% if c == cycle %}bg-purple-600 text-white{% else %}bg-slate-700 text-slate-300 hover:bg-slate-600{% endif %}">{{ c }}</a>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <form method="get" class="flex items-center gap-2 ml-auto">
+                    <input type="text" name="cycle" placeholder="New cycle name, e.g. March 2025" class="text-sm bg-slate-900 border border-slate-600 rounded-lg px-3 py-1 text-slate-200 w-64">
+                    <button type="submit" class="px-3 py-1 bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold rounded-lg transition">Start cycle</button>
+                </form>
+            </div>
+            <p class="text-xs text-slate-500 mt-3">Anchors, trip wire floors and locked weights are shared across every cycle. Only the measured actuals change, which is what makes two cycles comparable.</p>
+        </div>
     <!-- Status Bar -->
     <div class="grid grid-cols-4 gap-3 mb-6">
         <div class="bg-slate-800 rounded-lg p-3 text-center">
