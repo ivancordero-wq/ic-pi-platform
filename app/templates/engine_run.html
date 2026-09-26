@@ -180,34 +180,35 @@
     <!-- Prescriptions -->
     {% if result.prescriptions %}
         <div class="bg-navy-800 rounded-xl p-6 mb-6">
-          <h3 class="text-lg font-semibold text-slate-200 mb-4">Gap Diagnosis (IC-&pi; Engine)</h3>
-          <div class="space-y-3">
-          {% for rx in result.prescriptions %}
-            <div class="flex gap-3 items-start">
-              {% if rx.tier == 'CRITICAL' %}
-              <span class="text-xs px-2 py-1 rounded bg-red-500/20 text-red-300 font-medium whitespace-nowrap">CRITICAL</span>
-              {% else %}
-              <span class="text-xs px-2 py-1 rounded bg-yellow-500/20 text-yellow-300 font-medium whitespace-nowrap">{{ rx.tier }}</span>
-              {% endif %}
-              <p class="text-sm text-slate-300">{{ rx.text }}</p>
+          <h3 class="text-lg font-semibold text-slate-200 mb-4">Gap Diagnosis & Candidate Projects (IC-&pi; Engine)</h3>
+            <div class="space-y-4">
+            {% for rx in result.prescriptions %}
+                {% set pair = result.ai_prescriptions | selectattr("parameter", "equalto", rx.parameter) | selectattr("kpi", "equalto", rx.kpi) | first %}
+                <div class="border-b border-navy-700 pb-4 last:border-0 last:pb-0">
+                    <div class="grid md:grid-cols-2 gap-4 items-start">
+                        <div class="flex gap-3 items-start">
+                        {% if rx.tier == 'CRITICAL' %}
+                            <span class="text-xs px-2 py-1 rounded bg-red-500/20 text-red-300 font-medium whitespace-nowrap">CRITICAL</span>
+                        {% else %}
+                            <span class="text-xs px-2 py-1 rounded bg-yellow-500/20 text-yellow-300 font-medium whitespace-nowrap">{{ rx.tier }}</span>
+                        {% endif %}
+                            <p class="text-sm text-slate-300">{{ rx.text }}</p>
+                        </div>
+                        <div class="md:border-l md:border-navy-700 md:pl-4">
+                        {% if pair %}
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="text-xs px-2 py-1 rounded bg-purple-500/20 text-purple-300 font-medium">Candidate projects</span>
+                                <span class="text-xs text-slate-400">w_ij {{ pair.w_ij }}% &middot; score {{ pair.score }}%</span>
+                            </div>
+                            <div class="text-sm text-slate-200 whitespace-pre-line">{{ pair.projects }}</div>
+                        {% else %}
+                            <p class="text-xs text-slate-500 italic">No candidate projects for this gap. Restore the breached floor first, then re-run the engine.</p>
+                        {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
             </div>
-          {% endfor %}
-          </div>
-        </div>
-        {% endif %}
-
-        {% if result.ai_prescriptions %}
-        <div class="bg-navy-800 rounded-xl p-6 mb-6 border border-purple-500/30">
-          <h3 class="text-lg font-semibold text-purple-300 mb-4">AI-Suggested Improvement Projects</h3>
-          {% for ai in result.ai_prescriptions %}
-          <div class="mb-5 pb-5 border-b border-navy-700 last:border-0 last:mb-0 last:pb-0">
-            <div class="flex items-center gap-2 mb-2">
-              <span class="text-xs px-2 py-1 rounded bg-purple-500/20 text-purple-300 font-medium">{{ ai.kpi }}</span>
-              <span class="text-xs text-slate-400">in {{ ai.parameter }} &middot; W_i {{ ai.W_i }}% &middot; w_ij {{ ai.w_ij }}% &middot; score {{ ai.score }}%</span>
-            </div>
-            <div class="text-sm text-slate-200 whitespace-pre-line">{{ ai.projects }}</div>
-          </div>
-          {% endfor %}
         </div>
         {% endif %}
 
