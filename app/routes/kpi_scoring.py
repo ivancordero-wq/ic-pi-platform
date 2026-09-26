@@ -211,6 +211,21 @@ async def kpi_scoring_view(request: Request, discovery_id: str, cycle: str = "di
 
         all_scored = scored_count == total_kpis and total_kpis > 0
 
+        all_kpi_ids = [
+            k.id for k in db.query(KPI).join(
+                Parameter, KPI.parameter_id == Parameter.id
+            ).filter(Parameter.process_id == process.id).all()
+        ]
+        known_cycles = []
+        if all_kpi_ids:
+            for row in db.query(KPIScore.measurement_label).filter(
+                KPIScore.kpi_id.in_(all_kpi_ids)
+            ).distinct().all():
+                if row[0] and row[0] not in known_cycles:
+                    known_cycles.append(row[0])
+        if cycle not in known_cycles:
+            known_cycles.append(cycle)
+
         return templates.TemplateResponse("kpi_scoring.html", {
             "request": request,
             "discovery": discovery,
@@ -221,6 +236,8 @@ async def kpi_scoring_view(request: Request, discovery_id: str, cycle: str = "di
             "below_tau_count": below_tau_count,
             "flagged_count": flagged_count,
             "all_scored": all_scored,
+            "cycle": cycle,
+            "known_cycles": known_cycles,
             "val_errors": request.query_params.getlist("err"),
             "val_warnings": request.query_params.getlist("warn"),
         })
