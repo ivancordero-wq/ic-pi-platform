@@ -382,16 +382,20 @@ def compute_npi(process_id, db):
                     f"The performance model identified that the KPI '{gap['kpi']}' in the parameter "
                     f"'{gap['parameter']}' has the largest performance gap. "
                     + client_context +
-                    f"Suggest 2 concrete improvement projects that a leadership team would fund. "
-                    f"Each project should be specific, actionable, and name what will be done "
+                    f"Suggest 3 concrete improvement projects that a leadership team would fund. "
+                    f"Each must name the specific mechanism, system or work practice that will change "
                     f"(not abstract like 'improve this KPI'). "
-                    f"Format: one project per line, starting with a dash. Keep each under 40 words."
+                    f"CRITICAL CONSTRAINT: never state how much the KPI will improve, never give a "
+                    f"percentage, target value, amount of money saved, or timeline. Sizing the change "
+                    f"is the client's decision, made against their own operating data. Describe the "
+                    f"lever, not its magnitude. "
+                    f"Format: one project per line, starting with a dash. Keep each under 45 words."
                     + history_text
                 )
                 response = client.chat.completions.create(
                     model="gpt-4o-mini",
                     messages=[{"role": "user", "content": prompt}],
-                    max_tokens=200,
+                    max_tokens=450,
                     temperature=0.7,
                 )
                 ai_text = response.choices[0].message.content.strip()
