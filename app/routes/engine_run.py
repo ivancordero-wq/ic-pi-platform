@@ -326,7 +326,8 @@ def compute_npi(process_id, db):
                 )
             else:
                 client_context += ". "
-            top_gaps = [p for p in prescriptions if p["tier"] == "HIGH IMPACT"][:3]
+            critical_gaps = [p for p in prescriptions if p["tier"] == "CRITICAL"]
+            top_gaps = critical_gaps + [p for p in prescriptions if p["tier"] == "HIGH IMPACT"][:3]
             # Enrich with metrics from gaps list
             for tg in top_gaps:
                 matching_gap = next((g for g in gaps if g["name"] == tg["parameter"]), None)
