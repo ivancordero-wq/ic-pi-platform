@@ -46,7 +46,7 @@ def compute_normalized_score(actual, best, worst):
 
 
 @router.get("/discovery/{discovery_id}/kpi-scoring", response_class=HTMLResponse)
-async def kpi_scoring_view(request: Request, discovery_id: str):
+async def kpi_scoring_view(request: Request, discovery_id: str, cycle: str = "discovery_baseline"):
     user = require_auth(request)
     if not user:
         return RedirectResponse(url="/", status_code=302)
@@ -97,7 +97,7 @@ async def kpi_scoring_view(request: Request, discovery_id: str):
 
                 existing_score = db.query(KPIScore).filter(
                     KPIScore.kpi_id == kpi.id,
-                    KPIScore.measurement_label == "discovery_baseline"
+                    KPIScore.measurement_label == cycle
                 ).first()
 
                 # Get actual value from evidence_note (we store raw there now)
@@ -229,7 +229,7 @@ async def kpi_scoring_view(request: Request, discovery_id: str):
 
 
 @router.post("/discovery/{discovery_id}/kpi-scoring", response_class=HTMLResponse)
-async def save_kpi_scores(request: Request, discovery_id: str):
+async def save_kpi_scores(request: Request, discovery_id: str, cycle: str = "discovery_baseline"):
     user = require_auth(request)
     if not user:
         return RedirectResponse(url="/", status_code=302)
@@ -322,7 +322,7 @@ async def save_kpi_scores(request: Request, discovery_id: str):
 
                     existing_score = db.query(KPIScore).filter(
                         KPIScore.kpi_id == kpi_id,
-                        KPIScore.measurement_label == "discovery_baseline"
+                        KPIScore.measurement_label == cycle
                     ).first()
 
                     if existing_score:
@@ -333,7 +333,7 @@ async def save_kpi_scores(request: Request, discovery_id: str):
                         new_score = KPIScore(
                             kpi_id=kpi_id,
                             score=normalized,
-                            measurement_label="discovery_baseline",
+                            measurement_label=cycle,
                             evidence_note=evidence_text,
                         )
                         db.add(new_score)
@@ -349,9 +349,10 @@ async def save_kpi_scores(request: Request, discovery_id: str):
         for msg in warnings[:10]:
             params.append(("warn", msg))
 
-        url = f"/discovery/{discovery_id}/kpi-scoring"
+        url = f"/discovery/{discovery_id}/kpi-scoring?cycle={cycle}"
+
         if params:
-            url = url + "?" + urlencode(params)
+            url = url + "&" + urlencode(params)
 
         return RedirectResponse(url=url, status_code=302)
     finally:
