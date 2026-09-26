@@ -37,7 +37,7 @@ def require_auth(request: Request):
     return payload
 
 
-def compute_npi(process_id, db):
+def compute_npi(process_id, db, measurement_label="discovery_baseline"):
     """
     Compute the full NPI formula:
     NPI = SUM(W_i * alpha_i * SUM(w_ij * KPI_ij))
@@ -85,7 +85,7 @@ def compute_npi(process_id, db):
             if tau:
                 score_record = db.query(KPIScore).filter(
                     KPIScore.kpi_id == kpi.id,
-                    KPIScore.measurement_label == "discovery_baseline"
+                    KPIScore.measurement_label == measurement_label
                 ).first()
 
                 if score_record:
@@ -129,7 +129,7 @@ def compute_npi(process_id, db):
 
             score_record = db.query(KPIScore).filter(
                 KPIScore.kpi_id == kpi.id,
-                KPIScore.measurement_label == "discovery_baseline"
+                KPIScore.measurement_label == measurement_label
             ).first()
 
             if score_record:
