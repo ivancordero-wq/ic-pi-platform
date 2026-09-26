@@ -339,6 +339,15 @@ def compute_npi(process_id, db):
                     if target_kpi:
                         tg["w_ij"] = target_kpi["w_ij"]
                         tg["score"] = target_kpi["score"]
+                else:
+                    breached = next((pr for pr in parameter_results if pr["name"] == tg["parameter"]), None)
+                    if breached:
+                        tg["W_i"] = breached["W_i"]
+                        tg["composite"] = breached["composite_score"]
+                        target_kpi = next((k for k in breached["kpi_details"] if k["name"] == tg["kpi"]), None)
+                        if target_kpi:
+                            tg["w_ij"] = target_kpi["w_ij"]
+                            tg["score"] = target_kpi["score"]
             if not top_gaps:
                 top_gaps = prescriptions[:3]
 
